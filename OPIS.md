@@ -1,13 +1,19 @@
-## Projekt - Bazy danych
-*Grupa 2*<br>
-*Radosław Szepielak, Paweł Saltarius, Paweł Gadomski*
 
-# Opis systemu
+---
+
+# Projekt - Bazy danych
+Dzień i godzina zajęć: środa 18:30
+*Grupa 2*<br>
+Autorzy: *Radosław Szepielak, Paweł Saltarius, Paweł Gadomski*
+
+---
+
+# Wymagania i funkcje systemu
 **Aktorzy:** klient, administrator, zewnętrzny system płatności
 
 System będzie się składał z dwóch głównych sekcji: Sekcja użytkownika i sekcja administratora.
 
-# Sekcja użytkownika
+## Sekcja użytkownika
 
 W sekcji użytkownika będzie znajdowały się wszystkie dostępne dla klientów funkcje oraz informacje. Aby wejść do panelu użytkownika należy się zalogować/zarejestrować na konto użytkownika. Użytkownik będzie miał dostęp do trzech usług:
 
@@ -42,8 +48,7 @@ W sekcji użytkownika będzie znajdowały się wszystkie dostępne dla klientów
 
 Użytkownik może dodawać wybrane produkty do koszyka, a system generuje link płatności w zewnętrznym systemie płatności
 
-
-# Panel administratora
+## Panel administratora
 
 Do panelu administratora można się zalogować tylko przy użyciu konta administratora (jest to inne konto niż te dla użytkowników). Konto administratora można tylko utworzyć bezpośrednio przez serwer. W panelu administratora można zarządzać usługami oferowanymi przez firmę:
 
@@ -77,4 +82,5 @@ Frekwencji na poszczególnych modułach
 - Sprawdzenia uczestników danego studium i poszczególnych spotkań oraz statusu dokonania przez nich wpłaty na studium/zjazd
 
 Ponadto administrator może dodawać/usuwać osoby z listy osób z przywilejem odroczonej zapłaty na webinar/kurs/studium
-
+administrator może rownież wprowadzić dla danego webinaru/kursu/studium wykładowcę w ustalonym języku
+oraz ewentualnego tłumacza.
