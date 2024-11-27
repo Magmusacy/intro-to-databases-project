@@ -83,3 +83,8 @@ Frekwencji na poszczególnych modułach
 Ponadto administrator może dodawać/usuwać osoby z listy osób z przywilejem odroczonej zapłaty na webinar/kurs/studium.
 
 Administrator może rownież wprowadzić dla danego webinaru/kursu studium wykładowcę w ustalonym języku oraz ewentualnego tłumacza.
+
+**ToDo:**
+- Rola administratora zmienic na pracownik biura
+- Nowe role
+- Odrabianie nieobecnosci
