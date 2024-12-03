@@ -9,9 +9,9 @@ Autorzy: *Radosław Szepielak, Paweł Saltarius, Paweł Gadomski*
 ---
 
 # Wymagania i funkcje systemu
-**Aktorzy:** klient, administrator, zewnętrzny system płatności
+**Aktorzy:** klient, pracownik biura, zewnętrzny system płatności, nauczyciel, tłumacz, dyrektor
 
-System będzie się składał z dwóch głównych sekcji: Sekcja użytkownika i sekcja administratora.
+System będzie się składał z kilku sekcji: użytkownika, pracownika biura, nauczyciela, tłumacza i dyrektora.
 
 ## Sekcja użytkownika
 
@@ -43,19 +43,20 @@ W sekcji użytkownika będą znajdowały się wszystkie dostępne dla klientów 
 - Klient może zapisać się na pojedyncze spotkania studyjne bez konieczności brania udziału w całych studiach (cena różni się od tej dla stałych uczestników studium)
 - Klient może zapisać się na praktyki (o ile aktualnie się odbywają) oraz sprawdzać postęp aktualnie odbywających się praktyk.
 - Klient może sprawdzić formę w jakiej odbywają się konkretne zajęcia (hybrydowo, on-line, stacjonarnie)
-- Klient może sprawdzać swoje nieobecności oraz możliwość ich odrobienia (czy jest kurs o zbliżonej tematyce na który może się zapisać albo zajęcia)
+- Klient może sprawdzać swoje nieobecności
 - Po zakończeniu studium i spełnieniu wymagań (obecność, praktyki) uczestnik otrzymuje dyplom ukończenia, który jest automatycznie generowany i wysyłany Pocztą Polską na adres korespondencyjny podany w zgłoszeniu
+- Klient może zapytać nauczyciela uczącego dany przedmiot z którego ma nieobecność o wyznaczenie przedmiotu o zbliżonej tematyce, którym może nadrobić tą nieobeność
 
 Użytkownik może dodawać wybrane produkty do koszyka, a system generuje link płatności w zewnętrznym systemie płatności
 
-## Panel administratora
+## Panel pracownika biura
 
-Do panelu administratora można się zalogować tylko przy użyciu konta administratora (jest to inne konto niż te dla użytkowników). Konto administratora można tylko utworzyć bezpośrednio przez serwer. W panelu administratora można zarządzać usługami oferowanymi przez firmę:
+Do panelu pracownika biura można się zalogować tylko przy użyciu konta pracownika (jest to inne konto niż te dla użytkowników). Konto pracownika można tylko utworzyć bezpośrednio przez serwer. W panelu pracownika można zarządzać usługami oferowanymi przez firmę:
 
 
 ### 1. Webinary
 - Wyświetlać listę wszystkich webinarów. Do pomocy w szukaniu będą filtry, wyszukiwarka oraz sortowanie. Przy każdym webinarze będą się pojawiać podstawowe informacje (tytuł, data oraz status).
-- Zarządzanie poszczególnymi webinarami. Po kliknięciu na webinar z listy pojawią się szczegółowe informacje oraz opcje edycji. Do szczegółowych informacji które widzi zwykły użytkownik dochodzą także informacje na temat osób zapisanych oraz płatności. Administrator może edytować każdą informację w webinarze (poza statystykami), zmienić jego status oraz załączyć link do spotkania i nagrania.
+- Zarządzanie poszczególnymi webinarami. Po kliknięciu na webinar z listy pojawią się szczegółowe informacje oraz opcje edycji. Do szczegółowych informacji które widzi zwykły użytkownik dochodzą także informacje na temat osób zapisanych oraz płatności. Pracownik może edytować każdą informację w webinarze (poza statystykami), zmienić jego status oraz załączyć link do spotkania i nagrania.
 - Ustawić datę wygaśnięcia nagrania i archiwizacji. Może też to zrobić ręcznie.
 
 
@@ -63,7 +64,7 @@ Do panelu administratora można się zalogować tylko przy użyciu konta adminis
 - Wyświetlać w systemie listę wszystkich dostępnych kursów, podając podstawowe informacje takie jak tytuł kursu, datę rozpoczęcia i zakończenia, rodzaj kursu (forma prowadzenia), a także liczbę wolnych miejsc
 - Filtrować kursy po tytule, terminie, formie prowadzenia czy prowadzącym, a także sortować według daty rozpoczęcia, popularności czy ceny
 - Po kliknięciu na dany kurs, wyświetlają się szczegółowe informacje takie jak cena, harmonogram zajęć, opis kursu z uwzględnieniem zakresu tematycznego i wymagań, prowadzący zajęcia
-- Administrator może dodawać nowe moduły (stacjonarne, online, synchroniczne, 	
+- Pracownik może dodawać nowe moduły (stacjonarne, online, synchroniczne, 	
 asynchroniczne, hybrydowe), również modyfikować już istniejące
 - Przeglądać listę zapisanych osób wraz z informacją o ich statusie płatności,
 Frekwencji na poszczególnych modułach
@@ -74,17 +75,33 @@ Frekwencji na poszczególnych modułach
 ### 3. Studia
 - Wyświetlać listę wszystkich studiów, w tym kluczowe informacje na ich temat typu: limit miejsc na studium
 - Wyświetlać listę zjazdów dla danego studium, w tym ilość miejsc na zjazd
-- bMożliwość modyfikacji harmonogramu dla danego semestru.
+- Możliwość modyfikacji harmonogramu dla danego semestru.
 - Dodawać nowe studia wprowadzając ich nazwę, tematykę, limit miejsc, listę zjazdów, ilość miejsc na zjazd, formę prowadzenia zajęć dla poszczególnych zajęć, cenę.
 - Można wprowadzić nowo dostępne praktyki w danym semestrze.
 - Można modyfikować ceny dla poszczególnych studiów oraz pojedynczych spotkań dla osób z zewnątrz
 - Sprawdzenia uczestników danego studium i poszczególnych spotkań oraz statusu dokonania przez nich wpłaty na studium/zjazd
 
-Ponadto administrator może dodawać/usuwać osoby z listy osób z przywilejem odroczonej zapłaty na webinar/kurs/studium.
+Ponadto pracownik może dodawać/usuwać osoby z listy osób z przywilejem odroczonej zapłaty na webinar/kurs/studium.
 
-Administrator może rownież wprowadzić dla danego webinaru/kursu studium wykładowcę w ustalonym języku oraz ewentualnego tłumacza.
+Pracownik może rownież wprowadzić dla danego webinaru/kursu studium wykładowcę w ustalonym języku oraz ewentualnego tłumacza.
+
+Pracownik może także przypisać salę do poszczególnych zajęć 
+
+## Panel nauczyciela
+- Nauczyciel może podglądać zajęcia na których uczy.
+- Może przypisać klientowi zajęcia które tamten musi odbyć aby odrobić obecność z zajęc prowadzonych przez nauczyciela
+- Ma podgląd do listy klientów i ich frekwencji na zajęciach, na których uczy, jak r
+
+## Panel dyrektora
+- Dyrektor ma wgląd do finansów i statystyk całej szkółki. 
+- Tak samo jak konto pracownika - konto dyrektora trzeba założyć z poziomu serwera.
+- Dodatkowo jest opcja eksportu danych do tabelki w Excelu i PDFa.
+
+## Panel tłumacza
+- Tłumacz ma podgląd do harmonogramu zajęć, które będzie tłumaczył.
 
 **ToDo:**
-- Rola administratora zmienic na pracownik biura
+- Rola administratora zmienic na pracownik biura [ZROBIONE]
 - Nowe role
-- Odrabianie nieobecnosci
+- Odrabianie nieobecnosci [ZROBIONE]
+
