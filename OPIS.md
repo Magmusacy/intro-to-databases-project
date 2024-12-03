@@ -81,8 +81,6 @@ Frekwencji na poszczególnych modułach
 - Można modyfikować ceny dla poszczególnych studiów oraz pojedynczych spotkań dla osób z zewnątrz
 - Sprawdzenia uczestników danego studium i poszczególnych spotkań oraz statusu dokonania przez nich wpłaty na studium/zjazd
 
-Ponadto pracownik może dodawać/usuwać osoby z listy osób z przywilejem odroczonej zapłaty na webinar/kurs/studium.
-
 Pracownik może rownież wprowadzić dla danego webinaru/kursu studium wykładowcę w ustalonym języku oraz ewentualnego tłumacza.
 
 Pracownik może także przypisać salę do poszczególnych zajęć 
@@ -90,18 +88,18 @@ Pracownik może także przypisać salę do poszczególnych zajęć
 ## Panel nauczyciela
 - Nauczyciel może podglądać zajęcia na których uczy.
 - Może przypisać klientowi zajęcia które tamten musi odbyć aby odrobić obecność z zajęc prowadzonych przez nauczyciela
-- Ma podgląd do listy klientów i ich frekwencji na zajęciach, na których uczy, jak r
+- Nauczyciel ma podgląd do listy klientów i ich frekwencji na zajęciach, na których uczy, jak również może modyfikować frekwencję
 
 ## Panel dyrektora
 - Dyrektor ma wgląd do finansów i statystyk całej szkółki. 
 - Tak samo jak konto pracownika - konto dyrektora trzeba założyć z poziomu serwera.
 - Dodatkowo jest opcja eksportu danych do tabelki w Excelu i PDFa.
+- Może dodawać/usuwać osoby z listy osób z przywilejem odroczonej zapłaty na webinar/kurs/studium.
 
 ## Panel tłumacza
 - Tłumacz ma podgląd do harmonogramu zajęć, które będzie tłumaczył.
 
-**ToDo:**
-- Rola administratora zmienic na pracownik biura [ZROBIONE]
-- Nowe role
-- Odrabianie nieobecnosci [ZROBIONE]
 
+# Diagram
+
+![alt text](diagramy/diagram_1.png)
