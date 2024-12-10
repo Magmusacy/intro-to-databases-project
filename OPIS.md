@@ -102,4 +102,4 @@ Pracownik może także przypisać salę do poszczególnych zajęć
 
 # Diagram
 
-![alt text](diagramy/diagram_1.png)
+![alt text](diagramy/diagram_2.png)
