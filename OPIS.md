@@ -106,3 +106,17 @@ Pracownik może także przypisać salę do poszczególnych zajęć
 # Diagram (wersja 2)
 
 ![alt text](diagramy/diagram_2.png)
+
+- dopisac date rozpoczecia studiow (aby spelnic wymog wplaty 3 dni przed)
+- kursy stacjonarne i hybrydowe maja limit miejsc
+- tylko jeden nauczyciel ma prowadzic
+- obecnosci w praktykach mozna zamienic na nieobecnosci
+- nie ma nic o grupach cwiczeniowych, tyle ile ma miejsc kurs to tyle maja moduly
+
+# Widoki
+- Nadchodzące webinary
+- Niezapłacone zamówienia
+- Łączny przychód z każdego miesiąca
+- Studenci z niezaliczonym egzaminem
+- Studenci którzy mają frekwencje poniżej progu zdawalności
+- Studenci z zaliczonym/niezaliczonym stażem
