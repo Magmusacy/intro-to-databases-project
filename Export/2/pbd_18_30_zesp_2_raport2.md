@@ -99,10 +99,6 @@ Pracownik może także przypisać salę do poszczególnych zajęć
 ## Panel tłumacza
 - Tłumacz ma podgląd do harmonogramu zajęć, które będzie tłumaczył.
 
-# Diagram (wersja 1)
+# Diagram
 
 ![alt text](diagramy/diagram_1.png)
-
-# Diagram (wersja 2)
-
-![alt text](diagramy/diagram_2.png)
