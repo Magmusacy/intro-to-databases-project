@@ -99,14 +99,12 @@ Pracownik może także przypisać salę do poszczególnych zajęć
 ## Panel tłumacza
 - Tłumacz ma podgląd do harmonogramu zajęć, które będzie tłumaczył.
 
-# Diagram (wersja 1)
-
-![alt text](diagramy/diagram_1.png)
-
-# Diagram (wersja 2)
+# Diagram
 
 ![alt text](diagramy/diagram_2.png)
 
+
+TODO:
 - dopisac date rozpoczecia studiow (aby spelnic wymog wplaty 3 dni przed)
 - kursy stacjonarne i hybrydowe maja limit miejsc
 - tylko jeden nauczyciel ma prowadzic
@@ -114,9 +112,38 @@ Pracownik może także przypisać salę do poszczególnych zajęć
 - nie ma nic o grupach cwiczeniowych, tyle ile ma miejsc kurs to tyle maja moduly
 
 # Widoki
-- Nadchodzące webinary
-- Niezapłacone zamówienia
-- Łączny przychód z każdego miesiąca
-- Studenci z niezaliczonym egzaminem
-- Studenci którzy mają frekwencje poniżej progu zdawalności
-- Studenci z zaliczonym/niezaliczonym stażem
+
+#### Nadchodzące webinary
+``` sql
+CREATE VIEW [Upcoming Webinars] AS
+SELECT * 
+FROM Webinars
+WHERE MeetingDate > CURRENT_DATE()
+```
+
+#### Łączny przychód z każdego miesiąca
+``` sql
+```
+
+#### Studenci z niezaliczonym egzaminem
+``` sql
+```
+
+#### Studenci którzy mają frekwencje poniżej progu zdawalności
+``` sql
+```
+
+#### Studenci i status zaliczenia stażu
+``` sql
+```
+
+#### Niezapłacone zamówienia (NIE JEST GOTOWE!!!)
+``` sql
+(
+SELECT OrderDetails.OrderDetailID, SUM(Price) as PriceSum, SUM(Amount) as AmountSum
+FROM OrderDetails
+LEFT JOIN Payments
+ON OrderDetails.OrderDetailID = Payments.OrderDetailID
+WHERE PriceSum > AmountSum
+)
+```
