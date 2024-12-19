@@ -232,3 +232,11 @@ GROUP BY od.OrderDetailID
 )
 ```
 
+Zjazd to grupowanie spotkan, wtedy mozna wykupic zjazd. Na pozomie meetingow ceny poszczegolnych spotkan indywidualnych, a w zjazdach bedzie cena dla uczestnikow kursu.
+
+Kod DDL
+
+Slabe widoki, usunac niepotrzebne
+
+Laczna kwota z miesiecy jest od poczatku swiata
+
