@@ -101,7 +101,7 @@ Pracownik może także przypisać salę do poszczególnych zajęć
 
 # Diagram
 
-![alt text](diagramy/diagram_3.png)
+![alt text](diagramy/diagram_4.png)
 
 # Checki
 ### Courses: 
@@ -150,7 +150,7 @@ Price > 0
 
 Price_is_not_greater_than_0
 ``` sql
-OutsiderPrice > 0 AND StudiesParticipantPrice <= OutsiderPrice
+OutsiderPrice > 0
 ```
 
 MeetingCapacity_is_not_greater_than_0
@@ -173,31 +173,11 @@ Amount > 0
 # Widoki
 Widoki jeszcze nie były testowane w bazie, ze względu na to, że diagram bazy jeszcze nie jest zatwierdzony. Mogą zawierać drobne literówki lub błędy.
 
-#### Nadchodzące webinary
-``` sql
-CREATE VIEW [Upcoming Webinars] AS
-SELECT * 
-FROM Webinars
-WHERE MeetingDate > CURRENT_DATE()
-```
 
-#### Łączny przychód z każdego miesiąca
-``` sql
-SELECT MONTH(PaymentDate) as [Month], SUM(Amount)
-FROM Payments
-GROUP BY [Month]
-```
 
-#### Studenci z niezaliczonym egzaminem
+#### Studenci którzy mają frekwencje poniżej progu zdawalności (spośród spotkań które się odbyły) RS
 ``` sql
-SELECT FirstName, LastName
-FROM Exams e join Users u on e.UserID = u.UserID
-WHERE Grade < 50
-GROUP BY u.UserID, FirstName, LastName
-```
-
-#### Studenci którzy mają frekwencje poniżej progu zdawalności (spośród spotkań które się odbyły)
-``` sql
+CREATE VIEW [Students under attendance threshold]
 SELECT FirstName, LastName, TotalAttendance
 FROM (SELECT SAb.UserID, FirstName, LastName,
  COUNT(SAb.UserID) as TotalAttendance 
@@ -211,32 +191,469 @@ WHERE TotalAttendace /
     GROUP BY StudiesID) < 0.8
 ```
 
-#### Studenci z nieobecnością na stażu
+#### Łączny przychód z każdego miesiąca każdego roku -- WIP (tu mozna group by cube czy tam rollup)
+#### RS
 ``` sql
-CREATE VIEW [Apprenticeship Absent Students] AS
-SELECT U.FirstName, U.LastName, U.UserID, A.ApprenticeshipID
-FROM ApprenticeshipAbsences as A
-INNER JOIN Users as U
-ON A.UserID = U.UserID
+
 ```
 
-#### Niezapłacone zamówienia (NIE JEST GOTOWE!!!)
+#### Zestawienie przychodów dla każdego webinaru/kursu/studium - RS
 ``` sql
-(
-SELECT od.OrderDetailID, SUM(Price) as PriceSum, SUM(Amount) as AmountSum
-FROM OrderDetails as od
-LEFT JOIN Payments p
-ON od.OrderDetailID = p.OrderDetailID
-WHERE PriceSum > AmountSum
-GROUP BY od.OrderDetailID
-)
 ```
 
-Zjazd to grupowanie spotkan, wtedy mozna wykupic zjazd. Na pozomie meetingow ceny poszczegolnych spotkan indywidualnych, a w zjazdach bedzie cena dla uczestnikow kursu.
+#### Lista osób które mają niezapłacone zamówienia
+#### (nic nie wpłaciły lub coś wpłaciły ale nie całość) - Paweł G
+``` sql
+```
 
-Kod DDL
+#### Ogólny raport dotyczący liczby zapisanych osób na przyszłe wydarzenia (z informacją, czy wydarzenie jest stacjonarnie, czy zdalnie). - Paweł G
+``` sql
+```
 
-Slabe widoki, usunac niepotrzebne
+#### Ogólny raport dotyczący frekwencji na zakończonych już wydarzeniach. - Paweł G
+``` sql
+```
 
-Laczna kwota z miesiecy jest od poczatku swiata
+#### Lista obecności dla każdego szkolenia z datą, imieniem, nazwiskiem i informacją czy uczestnik był obecny, czy nie. - Pawel S
+``` sql
+```
 
+#### Raport bilokacji: lista osób, które są zapisane na co najmniej dwa przyszłe szkolenia, które ze sobą kolidują czasowo. - Pawel S
+``` sql
+
+```
+
+#### Raport trendów zapisów na webinary i kursy - Pawel S
+Widok wyświetlający liczbę zapisów na webinary, kursy i studia w podziale na miesiące, w ciągu ostatnich dwóch lat.
+```sql
+
+```
+
+# Kod DDL
+
+``` sql
+-- Table: ApprenticeshipAbsences
+CREATE TABLE ApprenticeshipAbsences (
+    ApprenticeshipAbsenceID int  NOT NULL,
+    ApprenticeshipID int  NOT NULL,
+    UserID int  NOT NULL,
+    AbsenceDate datetime  NOT NULL,
+    CONSTRAINT ApprenticeshipAbsences_pk PRIMARY KEY  (ApprenticeshipAbsenceID)
+);
+
+-- Table: ApprenticeshipCompany
+CREATE TABLE ApprenticeshipCompany (
+    CompanyID int  NOT NULL,
+    CompanyName nvarchar(80)  NOT NULL,
+    CONSTRAINT ApprenticeshipCompany_pk PRIMARY KEY  (CompanyID)
+);
+
+-- Table: Apprenticeships
+CREATE TABLE Apprenticeships (
+    ApprenticeshipID int  NOT NULL,
+    StudiesID int  NOT NULL,
+    Title nvarchar(80)  NOT NULL,
+    Description ntext  NOT NULL,
+    CompanyID int  NOT NULL,
+    CONSTRAINT Apprenticeships_pk PRIMARY KEY  (ApprenticeshipID)
+);
+
+-- Table: Coordinators
+CREATE TABLE Coordinators (
+    UserID int  NOT NULL,
+    CONSTRAINT Coordinators_pk PRIMARY KEY  (UserID)
+);
+
+-- Table: Courses
+CREATE TABLE Courses (
+    CourseID int  NOT NULL,
+    Title nvarchar(80)  NOT NULL,
+    Description ntext  NOT NULL,
+    CourseTypeID int  NOT NULL,
+    ParticipantsLimit int  NULL,
+    Price money  NOT NULL,
+    CONSTRAINT Price_is_not_greater_than_0 CHECK (Price > 0),
+    CONSTRAINT ParticipantsLimit_is_either_null_or_greater_than_0 CHECK (ParticipantsLimit IS NULL OR ParticipantsLimit > 0),
+    CONSTRAINT Courses_pk PRIMARY KEY  (CourseID)
+);
+
+-- Table: CoursesMeetingType
+CREATE TABLE CoursesMeetingType (
+    CourseTypeID int  NOT NULL,
+    CourseType nvarchar(24)  NOT NULL,
+    CONSTRAINT CoursesMeetingType_pk PRIMARY KEY  (CourseTypeID)
+);
+
+-- Table: Exams
+CREATE TABLE Exams (
+    StudiesID int  NOT NULL,
+    UserID int  NOT NULL,
+    Grade int  NOT NULL,
+    CONSTRAINT Grade_has_to_be_between_0_and_100 CHECK (Grade > 0 AND Grade <= 100),
+    CONSTRAINT Exams_pk PRIMARY KEY  (StudiesID,UserID)
+);
+
+-- Table: Headmasters
+CREATE TABLE Headmasters (
+    UserID int  NOT NULL,
+    IsRetired bit  NOT NULL,
+    CONSTRAINT Headmasters_pk PRIMARY KEY  (UserID)
+);
+
+-- Table: MeetingRooms
+CREATE TABLE MeetingRooms (
+    ModuleID int  NOT NULL,
+    MeetingPlace ntext  NOT NULL,
+    CONSTRAINT MeetingRooms_pk PRIMARY KEY  (ModuleID)
+);
+
+-- Table: ModuleAbsences
+CREATE TABLE ModuleAbsences (
+    UserID int  NOT NULL,
+    ModuleID int  NOT NULL,
+    AbsenceDate datetime  NOT NULL,
+    CONSTRAINT ModuleAbsences_pk PRIMARY KEY  (UserID,ModuleID)
+);
+
+-- Table: Modules
+CREATE TABLE Modules (
+    ModuleID int  NOT NULL,
+    CourseID int  NOT NULL,
+    MeetingTypeID int  NOT NULL,
+    ModuleName nvarchar(80)  NOT NULL,
+    Description ntext  NOT NULL,
+    CONSTRAINT Modules_pk PRIMARY KEY  (ModuleID)
+);
+
+-- Table: ModulesMettingType
+CREATE TABLE ModulesMettingType (
+    MeetingTypeID int  NOT NULL,
+    MeetingType nvarchar(24)  NOT NULL,
+    CONSTRAINT ModulesMettingType_pk PRIMARY KEY  (MeetingTypeID)
+);
+
+-- Table: OrderDetails
+CREATE TABLE OrderDetails (
+    OrderDetailID int  NOT NULL,
+    OrderID int  NOT NULL,
+    ProductID int  NOT NULL,
+    Price money  NOT NULL,
+    CONSTRAINT Price_is_not_greater_than_0 CHECK (Price > 0),
+    CONSTRAINT OrderDetails_pk PRIMARY KEY  (OrderDetailID)
+);
+
+-- Table: Orders
+CREATE TABLE Orders (
+    OrderID int  NOT NULL,
+    CustomerID int  NOT NULL,
+    OrderDate datetime  NOT NULL,
+    CONSTRAINT Orders_pk PRIMARY KEY  (OrderID)
+);
+
+-- Table: Payments
+CREATE TABLE Payments (
+    PaymentID int  NOT NULL,
+    OrderDetailID int  NOT NULL,
+    Amount money  NOT NULL,
+    PaymentDate datetime  NOT NULL,
+    CONSTRAINT Amount_is_not_greater_than_0 CHECK (Amount > 0),
+    CONSTRAINT Payments_pk PRIMARY KEY  (PaymentID)
+);
+
+-- Table: Products
+CREATE TABLE Products (
+    ProductID int  NOT NULL,
+    TeacherID int  NULL,
+    CONSTRAINT Products_pk PRIMARY KEY  (ProductID)
+);
+
+-- Table: Studies
+CREATE TABLE Studies (
+    StudiesID int  NOT NULL,
+    Title nvarchar(80)  NOT NULL,
+    Description ntext  NOT NULL,
+    Price money  NOT NULL,
+    StudiesCapacity int  NOT NULL,
+    StartDate datetime  NOT NULL,
+    CONSTRAINT Capacity_is_not_greater_than_0 CHECK (StudiesCapacity > 0 ),
+    CONSTRAINT Price_is_not_greater_than_0 CHECK (Price > 0),
+    CONSTRAINT Studies_pk PRIMARY KEY  (StudiesID)
+);
+
+-- Table: StudiesAbsences
+CREATE TABLE StudiesAbsences (
+    UserID int  NOT NULL,
+    ProductID int  NOT NULL,
+    AbsenceDate datetime  NOT NULL,
+    CONSTRAINT StudiesAbsences_pk PRIMARY KEY  (UserID,ProductID)
+);
+
+-- Table: StudiesMeetingType
+CREATE TABLE StudiesMeetingType (
+    MeetingTypeID int  NOT NULL,
+    MeetingType nvarchar(24)  NOT NULL,
+    CONSTRAINT StudiesMeetingType_pk PRIMARY KEY  (MeetingTypeID)
+);
+
+-- Table: StudiesMeetings
+CREATE TABLE StudiesMeetings (
+    ProductID int  NOT NULL,
+    RallyID int  NOT NULL,
+    Title nvarchar(80)  NOT NULL,
+    Description ntext  NOT NULL,
+    Semester int  NOT NULL,
+    MeetingDate datetime  NOT NULL,
+    MeetingTypeID int  NOT NULL,
+    MeetingCapacity int  NOT NULL,
+    StudiesParticipantPrice money  NOT NULL,
+    Price money  NOT NULL,
+    CONSTRAINT Price_is_not_greater_than_0 CHECK (OutsiderPrice > 0),
+    CONSTRAINT MeetingCapacity_is_not_greater_than_0 CHECK (MeetingCapacity > 0),
+    CONSTRAINT StudiesMeetings_pk PRIMARY KEY  (ProductID)
+);
+
+-- Table: StudiesRallies
+CREATE TABLE StudiesRallies (
+    ProductID int  NOT NULL,
+    StudiesID int  NOT NULL,
+    Price money  NOT NULL,
+    CONSTRAINT ProductID PRIMARY KEY  (ProductID)
+);
+
+-- Table: Teachers
+CREATE TABLE Teachers (
+    UserID int  NOT NULL,
+    Products_ProductID int  NOT NULL,
+    CONSTRAINT Teachers_pk PRIMARY KEY  (UserID)
+);
+
+-- Table: Translators
+CREATE TABLE Translators (
+    UserID int  NOT NULL,
+    CONSTRAINT Translators_pk PRIMARY KEY  (UserID)
+);
+
+-- Table: TranslatorsProducts
+CREATE TABLE TranslatorsProducts (
+    TranslatorID int  NOT NULL,
+    ProductID int  NOT NULL,
+    TranslatedLanguage nvarchar(24)  NOT NULL,
+    CONSTRAINT TranslatorsProducts_pk PRIMARY KEY  (TranslatorID,ProductID)
+);
+
+-- Table: Users
+CREATE TABLE Users (
+    UserID int  NOT NULL IDENTITY(1, 1),
+    FirstName nvarchar(40)  NOT NULL,
+    LastName nvarchar(40)  NOT NULL,
+    Address nvarchar(60)  NOT NULL,
+    Phone nvarchar(24)  NOT NULL,
+    City nvarchar(40)  NOT NULL,
+    Country nvarchar(40)  NOT NULL,
+    Email nvarchar(80)  NOT NULL,
+    CreatedAt datetime  NOT NULL,
+    UpdatedAt datetime  NOT NULL,
+    BirthDate datetime  NOT NULL,
+    CONSTRAINT BirthDate_is_not_from_the_future CHECK (BirthDate <= GETDATE()),
+    CONSTRAINT Users_pk PRIMARY KEY  (UserID)
+);
+
+-- Table: WebinarAbsences
+CREATE TABLE WebinarAbsences (
+    UserID int  NOT NULL,
+    WebinarID int  NOT NULL,
+    AbsenceDate datetime  NOT NULL,
+    CONSTRAINT WebinarAbsences_pk PRIMARY KEY  (UserID,WebinarID)
+);
+
+-- Table: Webinars
+CREATE TABLE Webinars (
+    WebinarID int  NOT NULL,
+    Title nvarchar(80)  NOT NULL,
+    Description ntext  NOT NULL,
+    MeetingLink ntext  NULL,
+    RecordLink ntext  NULL,
+    MeetingDate datetime  NOT NULL,
+    RecordUploadDate datetime  NULL,
+    Price money  NOT NULL,
+    CONSTRAINT Price_is_not_greater_than_0 CHECK (Price > 0),
+    CONSTRAINT Webinars_pk PRIMARY KEY  (WebinarID)
+);
+
+-- foreign keys
+-- Reference: ApprenticeshipCompanyID_Apprenticeships (table: Apprenticeships)
+ALTER TABLE Apprenticeships ADD CONSTRAINT ApprenticeshipCompanyID_Apprenticeships
+    FOREIGN KEY (CompanyID)
+    REFERENCES ApprenticeshipCompany (CompanyID);
+
+-- Reference: ApprenticeshipsAttendance_Apprenticeships (table: ApprenticeshipAbsences)
+ALTER TABLE ApprenticeshipAbsences ADD CONSTRAINT ApprenticeshipsAttendance_Apprenticeships
+    FOREIGN KEY (ApprenticeshipID)
+    REFERENCES Apprenticeships (ApprenticeshipID);
+
+-- Reference: ApprenticeshipsAttendance_Users (table: ApprenticeshipAbsences)
+ALTER TABLE ApprenticeshipAbsences ADD CONSTRAINT ApprenticeshipsAttendance_Users
+    FOREIGN KEY (UserID)
+    REFERENCES Users (UserID);
+
+-- Reference: CoursesMeetingType_Courses (table: Courses)
+ALTER TABLE Courses ADD CONSTRAINT CoursesMeetingType_Courses
+    FOREIGN KEY (CourseTypeID)
+    REFERENCES CoursesMeetingType (CourseTypeID);
+
+-- Reference: Courses_Products (table: Courses)
+ALTER TABLE Courses ADD CONSTRAINT Courses_Products
+    FOREIGN KEY (CourseID)
+    REFERENCES Products (ProductID);
+
+-- Reference: Exams_Studies (table: Exams)
+ALTER TABLE Exams ADD CONSTRAINT Exams_Studies
+    FOREIGN KEY (StudiesID)
+    REFERENCES Studies (StudiesID);
+
+-- Reference: Exams_Users (table: Exams)
+ALTER TABLE Exams ADD CONSTRAINT Exams_Users
+    FOREIGN KEY (UserID)
+    REFERENCES Users (UserID);
+
+-- Reference: MeetingRooms_Modules (table: MeetingRooms)
+ALTER TABLE MeetingRooms ADD CONSTRAINT MeetingRooms_Modules
+    FOREIGN KEY (ModuleID)
+    REFERENCES Modules (ModuleID);
+
+-- Reference: ModuleAttendance_Modules (table: ModuleAbsences)
+ALTER TABLE ModuleAbsences ADD CONSTRAINT ModuleAttendance_Modules
+    FOREIGN KEY (ModuleID)
+    REFERENCES Modules (ModuleID);
+
+-- Reference: Modules_Courses (table: Modules)
+ALTER TABLE Modules ADD CONSTRAINT Modules_Courses
+    FOREIGN KEY (CourseID)
+    REFERENCES Courses (CourseID);
+
+-- Reference: Modules_CoursesMeetingType (table: Modules)
+ALTER TABLE Modules ADD CONSTRAINT Modules_CoursesMeetingType
+    FOREIGN KEY (MeetingTypeID)
+    REFERENCES ModulesMettingType (MeetingTypeID);
+
+-- Reference: OrderDetails_Payments (table: Payments)
+ALTER TABLE Payments ADD CONSTRAINT OrderDetails_Payments
+    FOREIGN KEY (OrderDetailID)
+    REFERENCES OrderDetails (OrderDetailID);
+
+-- Reference: Order_Details_Orders (table: OrderDetails)
+ALTER TABLE OrderDetails ADD CONSTRAINT Order_Details_Orders
+    FOREIGN KEY (OrderID)
+    REFERENCES Orders (OrderID);
+
+-- Reference: Orders_Users (table: Orders)
+ALTER TABLE Orders ADD CONSTRAINT Orders_Users
+    FOREIGN KEY (CustomerID)
+    REFERENCES Users (UserID);
+
+-- Reference: Products_Order_Details (table: OrderDetails)
+ALTER TABLE OrderDetails ADD CONSTRAINT Products_Order_Details
+    FOREIGN KEY (ProductID)
+    REFERENCES Products (ProductID);
+
+-- Reference: Products_Studies (table: Studies)
+ALTER TABLE Studies ADD CONSTRAINT Products_Studies
+    FOREIGN KEY (StudiesID)
+    REFERENCES Products (ProductID);
+
+-- Reference: Products_StudyProducts (table: StudiesMeetings)
+ALTER TABLE StudiesMeetings ADD CONSTRAINT Products_StudyProducts
+    FOREIGN KEY (ProductID)
+    REFERENCES Products (ProductID);
+
+-- Reference: StudiesRallies_Products (table: StudiesRallies)
+ALTER TABLE StudiesRallies ADD CONSTRAINT StudiesRallies_Products
+    FOREIGN KEY (ProductID)
+    REFERENCES Products (ProductID);
+
+-- Reference: StudiesRallies_StudiesMeetings (table: StudiesMeetings)
+ALTER TABLE StudiesMeetings ADD CONSTRAINT StudiesRallies_StudiesMeetings
+    FOREIGN KEY (RallyID)
+    REFERENCES StudiesRallies (ProductID);
+
+-- Reference: Studies_Apprenticeships (table: Apprenticeships)
+ALTER TABLE Apprenticeships ADD CONSTRAINT Studies_Apprenticeships
+    FOREIGN KEY (StudiesID)
+    REFERENCES Studies (StudiesID);
+
+-- Reference: Studies_StudiesRallies (table: StudiesRallies)
+ALTER TABLE StudiesRallies ADD CONSTRAINT Studies_StudiesRallies
+    FOREIGN KEY (StudiesID)
+    REFERENCES Studies (StudiesID);
+
+-- Reference: StudyAttendance_StudyMeetings (table: StudiesAbsences)
+ALTER TABLE StudiesAbsences ADD CONSTRAINT StudyAttendance_StudyMeetings
+    FOREIGN KEY (ProductID)
+    REFERENCES StudiesMeetings (ProductID);
+
+-- Reference: StudyAttendance_Users (table: StudiesAbsences)
+ALTER TABLE StudiesAbsences ADD CONSTRAINT StudyAttendance_Users
+    FOREIGN KEY (UserID)
+    REFERENCES Users (UserID);
+
+-- Reference: StudyMeetings_StudiesMeetingType (table: StudiesMeetings)
+ALTER TABLE StudiesMeetings ADD CONSTRAINT StudyMeetings_StudiesMeetingType
+    FOREIGN KEY (MeetingTypeID)
+    REFERENCES StudiesMeetingType (MeetingTypeID);
+
+-- Reference: Teachers_Products (table: Products)
+ALTER TABLE Products ADD CONSTRAINT Teachers_Products
+    FOREIGN KEY (TeacherID)
+    REFERENCES Teachers (UserID);
+
+-- Reference: TranslatorsProducts_Products (table: TranslatorsProducts)
+ALTER TABLE TranslatorsProducts ADD CONSTRAINT TranslatorsProducts_Products
+    FOREIGN KEY (ProductID)
+    REFERENCES Products (ProductID);
+
+-- Reference: TranslatorsProducts_Translators (table: TranslatorsProducts)
+ALTER TABLE TranslatorsProducts ADD CONSTRAINT TranslatorsProducts_Translators
+    FOREIGN KEY (TranslatorID)
+    REFERENCES Translators (UserID);
+
+-- Reference: Users_Coordinator (table: Coordinators)
+ALTER TABLE Coordinators ADD CONSTRAINT Users_Coordinator
+    FOREIGN KEY (UserID)
+    REFERENCES Users (UserID);
+
+-- Reference: Users_Headmaster (table: Headmasters)
+ALTER TABLE Headmasters ADD CONSTRAINT Users_Headmaster
+    FOREIGN KEY (UserID)
+    REFERENCES Users (UserID);
+
+-- Reference: Users_ModuleAttendance (table: ModuleAbsences)
+ALTER TABLE ModuleAbsences ADD CONSTRAINT Users_ModuleAttendance
+    FOREIGN KEY (UserID)
+    REFERENCES Users (UserID);
+
+-- Reference: Users_Teachers (table: Teachers)
+ALTER TABLE Teachers ADD CONSTRAINT Users_Teachers
+    FOREIGN KEY (UserID)
+    REFERENCES Users (UserID);
+
+-- Reference: Users_Translator (table: Translators)
+ALTER TABLE Translators ADD CONSTRAINT Users_Translator
+    FOREIGN KEY (UserID)
+    REFERENCES Users (UserID);
+
+-- Reference: WebinarAttendance_Users (table: WebinarAbsences)
+ALTER TABLE WebinarAbsences ADD CONSTRAINT WebinarAttendance_Users
+    FOREIGN KEY (UserID)
+    REFERENCES Users (UserID);
+
+-- Reference: WebinarAttendance_Webinars (table: WebinarAbsences)
+ALTER TABLE WebinarAbsences ADD CONSTRAINT WebinarAttendance_Webinars
+    FOREIGN KEY (WebinarID)
+    REFERENCES Webinars (WebinarID);
+
+-- Reference: Webinars_Products (table: Webinars)
+ALTER TABLE Webinars ADD CONSTRAINT Webinars_Products
+    FOREIGN KEY (WebinarID)
+    REFERENCES Products (ProductID);
+
+```
