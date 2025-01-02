@@ -175,59 +175,130 @@ Widoki jeszcze nie były testowane w bazie, ze względu na to, że diagram bazy 
 
 
 
-#### Studenci którzy mają frekwencje poniżej progu zdawalności (spośród spotkań które się odbyły) RS
+
+#### Studenci którzy mają frekwencje poniżej progu zdawalności (spośród spotkań które się odbyły - tylko te spotkania na które jest zapisany) RS
 ``` sql
+-- CREATE VIEW [Students under attendance threshold]
+-- SELECT FirstName, LastName, TotalAbsence
+-- FROM (SELECT SAb.UserID, FirstName, LastName,
+--  COUNT(SAb.UserID) as TotalAbsence
+--         FROM StudiesAbsences as SAb
+--         JOIN Users u on u.UserID = SAb.UserID
+--         GROUP BY SAb.UserID, FirstName, LastName)
+-- WHERE TotalAbsence / 
+--     (SELECT COUNT(StudiesID) as AllMeetings
+--     FROM StudiesMeetings as SM
+--     WHERE MeetingDate < GETDATE()
+--     GROUP BY StudiesID) < 0.8 ---??? GROUP BY StudiesID?
+
+
 CREATE VIEW [Students under attendance threshold]
-SELECT FirstName, LastName, TotalAttendance
+SELECT Attendances.FirstName, Attendances.LastName, TotalAbsence, FullAttendance
 FROM (SELECT SAb.UserID, FirstName, LastName,
- COUNT(SAb.UserID) as TotalAttendance 
-        FROM StudiesAbscences as SAb
-        JOIN Users u on u.UserID = SAb.UserID
-        GROUP BY SAb.UserID, FirstName, LastName)
-WHERE TotalAttendace / 
-    (SELECT COUNT(StudiesID) as AllMeetings
-    FROM StudiesMeetings as SM
-    WHERE MeetingDate < GETDATE()
-    GROUP BY StudiesID) < 0.8
+        COUNT(SAb.UserID) as TotalAbsence
+    FROM StudiesAbsences as SAb
+    JOIN Users u on u.UserID = SAb.UserID
+    GROUP BY SAb.UserID, FirstName, LastName) as Absences
+
+    JOIN
+
+    (SELECT u.UserID, u.FirstName, u.LastName,
+     COUNT(u.UserID) as FullAttendance
+    FROM Users u join Orders o on u.UserID = o.CustomerID join OrderDetails od on o.OrderID = od.OrderID join StudiesMeetings sm on od.ProductID =  sm.ProductID
+    WHERE sm.MeetingDate < GETDATE()
+    GROUP BY u.UserID, u.FirstName, u.LastName) as
+    Attendances
+    ON Attendances.UserID = Absences.UserID
+WHERE TotalAbsence / FullAttendance >= 0.2
 ```
 
-#### Łączny przychód z każdego miesiąca każdego roku -- WIP (tu mozna group by cube czy tam rollup)
-#### RS
+
+
+
+#### Łączny przychód z każdego miesiąca każdego roku -- WIP (tu mozna group by cube czy tam rollup) RS
 ``` sql
+CREATE VIEW [Total income by month of each year]
 
+WITH YearMonthDates AS (
+    SELECT DISTINCT YEAR(p.PaymentDate) as Rok, m.Miesiąc
+    FROM Payments p
+    CROSS JOIN
+         (SELECT TOP 12 ROW_NUMBERS() OVER (ORDER BY (SELECT NULL)) AS Miesiąc
+          FROM master..spt_values) m
+)
+SELECT ymd.Rok Rok, ymd.Miesiąc Miesiąc, ISNULL(SUM(Amount), 0) Przychód
+FROM YearMonthDates ymd LEFT JOIN Payments p
+    ON ymd.Rok = YEAR(p.PaymentDate) AND ymd.Miesiąc = MONTH(p.PaymentDate)
+GROUP BY ROLLUP(ymd.Rok, ymd.Miesiąc)
+ORDER BY Rok DESC, Miesiąc ASC
+
+-- SELECT YEAR(PaymentDate) Rok, MONTH(PaymentDate) Miesiąc,
+--         SUM(Amount) Przychód
+-- FROM Payments p
+-- GROUP BY ROLLUP(YEAR(PaymentDate), MONTH(PaymentDate))
+-- ORDER BY Rok DESC, Miesiąc ASC
 ```
+
+
+
 
 #### Zestawienie przychodów dla każdego webinaru/kursu/studium - RS
 ``` sql
 ```
+
+
+
 
 #### Lista osób które mają niezapłacone zamówienia
 #### (nic nie wpłaciły lub coś wpłaciły ale nie całość) - Paweł G
 ``` sql
 ```
 
+
+
+
 #### Ogólny raport dotyczący liczby zapisanych osób na przyszłe wydarzenia (z informacją, czy wydarzenie jest stacjonarnie, czy zdalnie). - Paweł G
 ``` sql
 ```
+
+
+
+
 
 #### Ogólny raport dotyczący frekwencji na zakończonych już wydarzeniach. - Paweł G
 ``` sql
 ```
 
+
+
+
+
 #### Lista obecności dla każdego szkolenia z datą, imieniem, nazwiskiem i informacją czy uczestnik był obecny, czy nie. - Pawel S
 ``` sql
 ```
+
+
+
+
 
 #### Raport bilokacji: lista osób, które są zapisane na co najmniej dwa przyszłe szkolenia, które ze sobą kolidują czasowo. - Pawel S
 ``` sql
 
 ```
 
+
+
+
+
 #### Raport trendów zapisów na webinary i kursy - Pawel S
 Widok wyświetlający liczbę zapisów na webinary, kursy i studia w podziale na miesiące, w ciągu ostatnich dwóch lat.
 ```sql
 
 ```
+
+
+
+
 
 # Kod DDL
 
