@@ -195,18 +195,18 @@ Widoki jeszcze nie były testowane w bazie, ze względu na to, że diagram bazy 
 CREATE VIEW [Students under attendance threshold]
 SELECT Attendances.FirstName, Attendances.LastName, TotalAbsence, FullAttendance
 FROM (SELECT SAb.UserID, FirstName, LastName,
-        COUNT(SAb.UserID) as TotalAbsence
-    FROM StudiesAbsences as SAb
-    JOIN Users u on u.UserID = SAb.UserID
-    GROUP BY SAb.UserID, FirstName, LastName) as Absences
+        COUNT(SAb.UserID) AS TotalAbsence
+    FROM StudiesAbsences AS SAb
+    JOIN Users u ON u.UserID = SAb.UserID
+    GROUP BY SAb.UserID, FirstName, LastName) AS Absences
 
     JOIN
 
     (SELECT u.UserID, u.FirstName, u.LastName,
-     COUNT(u.UserID) as FullAttendance
-    FROM Users u join Orders o on u.UserID = o.CustomerID join OrderDetails od on o.OrderID = od.OrderID join StudiesMeetings sm on od.ProductID =  sm.ProductID
+     COUNT(u.UserID) AS FullAttendance
+    FROM Users u JOIN Orders o ON u.UserID = o.CustomerID JOIN OrderDetails od ON o.OrderID = od.OrderID JOIN StudiesMeetings sm ON od.ProductID =  sm.ProductID
     WHERE sm.MeetingDate < GETDATE()
-    GROUP BY u.UserID, u.FirstName, u.LastName) as
+    GROUP BY u.UserID, u.FirstName, u.LastName) AS
     Attendances
     ON Attendances.UserID = Absences.UserID
 WHERE TotalAbsence / FullAttendance >= 0.2
@@ -221,8 +221,7 @@ CREATE VIEW [Total income by month of each year]
 
 WITH YearMonthDates AS (
     SELECT DISTINCT YEAR(p.PaymentDate) as Rok, m.Miesiąc
-    FROM Payments p
-    CROSS JOIN
+    FROM Payments p CROSS JOIN
          (SELECT TOP 12 ROW_NUMBERS() OVER (ORDER BY (SELECT NULL)) AS Miesiąc
           FROM master..spt_values) m
 )
@@ -244,6 +243,44 @@ ORDER BY Rok DESC, Miesiąc ASC
 
 #### Zestawienie przychodów dla każdego webinaru/kursu/studium - RS
 ``` sql
+
+SELECT TotalIncomeRaport.WebCourStudID AS wcsID, TotalIncomeRaport.Title AS Title,
+         TotalIncomeRaport.Type AS Type, SUM(TotalIncomeRaport.Price) AS TotalPrice
+FROM (
+    SELECT s.StudiesID AS WebCourStudID, s.Title as Title, 'Studium' AS Type, SUM(od.Price) AS Price
+    FROM OrderDetails od JOIN Studies s ON od.ProductID = s.StudiesID
+    GROUP BY s.StudiesID, s.Title
+
+    UNION ALL
+
+    SELECT sr.StudiesID AS WebCourStudID, s.Title as Title, 'Studium' AS Type, SUM(od.Price) AS Price
+    FROM OrderDetails od JOIN StudiesRallies sr ON od.ProductID = sr.ProductID JOIN Studies s ON sr.StudiesID = s.StudiesID
+    GROUP BY sr.StudiesID, s.Title
+
+    UNION ALL
+
+    SELECT s.StudiesID AS WebCourStudID, s.Title as Title, 'Studium' AS Type,  SUM(od.Price) AS Price
+    FROM OrderDetails od JOIN StudiesMeetings sm ON od.ProductID = sm.ProductID JOIN StudiesRallies sr ON sm.RallyID = sr.ProductID JOIN
+    Studies s ON sr.StudiesID = s.StudiesID
+    GROUP BY s.StudiesID, s.Title 
+    
+    UNION ALL
+
+    SELECT c.CourseID AS WebCourStudID, c.Title as Title, 'Course' AS Type, SUM(od.Price) AS Price
+    FROM OrderDetails od JOIN Courses c ON od.ProductID = c.CourseID
+    GROUP BY c.CourseID, c.Title
+
+    UNION ALL
+
+    SELECT w.WebinarID AS WebCourStudID, w.Title as Title, 'Webinar' AS Type,  SUM(od.Price) AS Price
+    FROM OrderDetails od JOIN Webinars w ON od.ProductID = w.WebinarID
+    GROUP BY w.WebinarID, w.Title
+
+    ) AS TotalIncomeRaport
+
+GROUP BY TotalIncomeRaport.WebCourStudID, TotalIncomeRaport.Title, TotalIncomeRaport.Type
+
+
 ```
 
 
