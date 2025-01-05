@@ -1,4 +1,3 @@
-
 ---
 
 # Projekt - Bazy danych
@@ -9,6 +8,7 @@ Autorzy: *Radosław Szepielak, Paweł Saltarius, Paweł Gadomski*
 ---
 
 # Wymagania i funkcje systemu
+
 **Aktorzy:** klient, pracownik biura, zewnętrzny system płatności, nauczyciel, tłumacz, dyrektor
 
 System będzie się składał z kilku sekcji: użytkownika, pracownika biura, nauczyciela, tłumacza i dyrektora.
@@ -17,25 +17,25 @@ System będzie się składał z kilku sekcji: użytkownika, pracownika biura, na
 
 W sekcji użytkownika będą znajdowały się wszystkie dostępne dla klientów funkcje oraz informacje. Aby wejść do panelu użytkownika należy się zalogować/zarejestrować na konto użytkownika. Użytkownik będzie miał dostęp do trzech usług:
 
-
 ### 1. Webinary
+
 - Zapisy na nadchodzące webinary (przy płatnych webinarach płatność zewnętrznym systemem). Informacje o poszczególnych webinarach to: data, czas trwania, tytuł, opis, język, koszt, grafika, platforma spotkania oraz przycisk do zapisów.
 - Nagrania z ostatnich webinarów (webinary na które byliśmy zapisani + dodatkowa zakładka na darmowe webinary na które nie byliśmy zapisani). Wyświetlana jest też data kiedy stracimy do nich dostęp.
 - Nadchodzące webinary na które jesteśmy zapisani (data, informacje, link do spotkania).
 
-
 ### 2. Kursy
-- Zapisy na dostępne kursy w następujących formach: 
-    - Stacjonarne, odbywają się w wyznaczonej sali i są zaliczane na podstawie obecności, mają ustalony limit miejsc.
-    - on-line synchroniczne, wymagają uczestnictwa w wydarzeniach na żywo na platformie do webinarów, nagrania są przechowywane w zewnętrznym systemie, a linki do nich udostępniane uczestnikowi, brak limitu miejsc
-    - on-line asynchroniczne, zaliczenie odbywa się po obejrzeniu materiałów (automatyczna weryfikacja), na podstawie obecności, nagrania są przechowywane w zewnętrznym systemie, a linki do nich udostępniane uczestnikowi, brak limitu miejsc
-    - hybrydowe, łączą podejście on-line i stacjonarne, mają ustalony limit miejsc
+
+- Zapisy na dostępne kursy w następujących formach:
+  - Stacjonarne, odbywają się w wyznaczonej sali i są zaliczane na podstawie obecności, mają ustalony limit miejsc.
+  - on-line synchroniczne, wymagają uczestnictwa w wydarzeniach na żywo na platformie do webinarów, nagrania są przechowywane w zewnętrznym systemie, a linki do nich udostępniane uczestnikowi, brak limitu miejsc
+  - on-line asynchroniczne, zaliczenie odbywa się po obejrzeniu materiałów (automatyczna weryfikacja), na podstawie obecności, nagrania są przechowywane w zewnętrznym systemie, a linki do nich udostępniane uczestnikowi, brak limitu miejsc
+  - hybrydowe, łączą podejście on-line i stacjonarne, mają ustalony limit miejsc
 - Wszystkie kursy są płatne (płatność przez zewnętrzny system, wpłata zaliczki przy zapisie, opłacenie całej kwoty najpóźniej 3 dni przed rozpoczęciem kursu)
 - Warunkiem zaliczenia kursu jest uczestnictwo w co najmniej 80% modułów. System automatycznie weryfikuje obecność uczestnika na modułach oraz postęp w przypadku materiałów asynchronicznych
-- Po zakończeniu kursu i spełnieniu wymagań (obecność, zaliczenie modułów) uczestnik otrzymuje dyplom ukończenia, który jest automatycznie generowany	 i wysyłany Pocztą Polską na adres korespondencyjny podany w zgłoszeniu
-
+- Po zakończeniu kursu i spełnieniu wymagań (obecność, zaliczenie modułów) uczestnik otrzymuje dyplom ukończenia, który jest automatycznie generowany i wysyłany Pocztą Polską na adres korespondencyjny podany w zgłoszeniu
 
 ### 3. Studia
+
 - Klient może przeglądać sylabus danego studium.
 - Możliwość zapisania się i uiszczenia wpisowego na wybrane studium o ile są dostępne miejsca.
 - Uiszczenie wpłaty za dany zjazd najpóźniej 3 dni przed jego rozpoczęciem.
@@ -53,26 +53,26 @@ Użytkownik może dodawać wybrane produkty do koszyka, a system generuje link p
 
 Do panelu pracownika biura można się zalogować tylko przy użyciu konta pracownika (jest to inne konto niż te dla użytkowników). Konto pracownika można tylko utworzyć bezpośrednio przez serwer. W panelu pracownika można zarządzać usługami oferowanymi przez firmę:
 
-
 ### 1. Webinary
+
 - Wyświetlać listę wszystkich webinarów. Do pomocy w szukaniu będą filtry, wyszukiwarka oraz sortowanie. Przy każdym webinarze będą się pojawiać podstawowe informacje (tytuł, data oraz status).
 - Zarządzanie poszczególnymi webinarami. Po kliknięciu na webinar z listy pojawią się szczegółowe informacje oraz opcje edycji. Do szczegółowych informacji które widzi zwykły użytkownik dochodzą także informacje na temat osób zapisanych oraz płatności. Pracownik może edytować każdą informację w webinarze (poza statystykami), zmienić jego status oraz załączyć link do spotkania i nagrania.
 - Ustawić datę wygaśnięcia nagrania i archiwizacji. Może też to zrobić ręcznie.
 
-
 ### 2. Kursy
+
 - Wyświetlać w systemie listę wszystkich dostępnych kursów, podając podstawowe informacje takie jak tytuł kursu, datę rozpoczęcia i zakończenia, rodzaj kursu (forma prowadzenia), a także liczbę wolnych miejsc
 - Filtrować kursy po tytule, terminie, formie prowadzenia czy prowadzącym, a także sortować według daty rozpoczęcia, popularności czy ceny
 - Po kliknięciu na dany kurs, wyświetlają się szczegółowe informacje takie jak cena, harmonogram zajęć, opis kursu z uwzględnieniem zakresu tematycznego i wymagań, prowadzący zajęcia
-- Pracownik może dodawać nowe moduły (stacjonarne, online, synchroniczne, 	
-asynchroniczne, hybrydowe), również modyfikować już istniejące
+- Pracownik może dodawać nowe moduły (stacjonarne, online, synchroniczne,
+  asynchroniczne, hybrydowe), również modyfikować już istniejące
 - Przeglądać listę zapisanych osób wraz z informacją o ich statusie płatności,
-Frekwencji na poszczególnych modułach
-- Załączać link do spotkania i nagrania, ustawiać datę wygaśnięcia nagrania/   dostępu do nagrania i innych materiałów w  trakcie trwania kursu jak i po jego zakończeniu
+  Frekwencji na poszczególnych modułach
+- Załączać link do spotkania i nagrania, ustawiać datę wygaśnięcia nagrania/ dostępu do nagrania i innych materiałów w trakcie trwania kursu jak i po jego zakończeniu
 - Generować statystyki popularności, frekwencji dla wybranego kursu
 
-
 ### 3. Studia
+
 - Wyświetlać listę wszystkich studiów, w tym kluczowe informacje na ich temat typu: limit miejsc na studium
 - Wyświetlać listę zjazdów dla danego studium, w tym ilość miejsc na zjazd
 - Możliwość modyfikacji harmonogramu dla danego semestru.
@@ -83,20 +83,23 @@ Frekwencji na poszczególnych modułach
 
 Pracownik może rownież wprowadzić dla danego webinaru/kursu studium wykładowcę w ustalonym języku oraz ewentualnego tłumacza.
 
-Pracownik może także przypisać salę do poszczególnych zajęć 
+Pracownik może także przypisać salę do poszczególnych zajęć
 
 ## Panel nauczyciela
+
 - Nauczyciel może podglądać zajęcia na których uczy.
 - Może przypisać klientowi zajęcia które tamten musi odbyć aby odrobić obecność z zajęc prowadzonych przez nauczyciela
 - Nauczyciel ma podgląd do listy klientów i ich frekwencji na zajęciach, na których uczy, jak również może modyfikować frekwencję
 
 ## Panel dyrektora
-- Dyrektor ma wgląd do finansów i statystyk całej szkółki. 
+
+- Dyrektor ma wgląd do finansów i statystyk całej szkółki.
 - Tak samo jak konto pracownika - konto dyrektora trzeba założyć z poziomu serwera.
 - Dodatkowo jest opcja eksportu danych do tabelki w Excelu i PDFa.
 - Może dodawać/usuwać osoby z listy osób z przywilejem odroczonej zapłaty na webinar/kurs/studium.
 
 ## Panel tłumacza
+
 - Tłumacz ma podgląd do harmonogramu zajęć, które będzie tłumaczył.
 
 # Diagram
@@ -104,80 +107,96 @@ Pracownik może także przypisać salę do poszczególnych zajęć
 ![alt text](diagramy/diagram_4.png)
 
 # Checki
-### Courses: 
+
+### Courses:
+
 Price_is_not_greater_than_0
-``` sql
+
+```sql
 Price > 0
 ```
-ParticipantsLimit_is_either_null_or _greater_than_0
-``` sql
+
+ParticipantsLimit_is_either_null_or \_greater_than_0
+
+```sql
 ParticipantsLimit IS NULL OR ParticipantsLimit > 0
 ```
 
 ### Studies:
+
 Capacity_is_not_greater_than_0
-``` sql
+
+```sql
 StudiesCapacity > 0
-``` 
+```
 
 Price_is_not_greater_than_0
-``` sql
+
+```sql
 Price > 0
 ```
 
 ### Webinars:
 
 Price_is_not_greater_than_0
-``` sql
+
+```sql
 Price > 0
 ```
 
 ### Users:
 
 BirthDate_is_not_from_the_future
-``` sql
+
+```sql
 BirthDate <= GETDATE()
 ```
 
 ### OrderDetails:
 
 Price_is_not_greater_than_0
-``` sql
+
+```sql
 Price > 0
 ```
 
 ### StudiesMeetings:
 
 Price_is_not_greater_than_0
-``` sql
+
+```sql
 OutsiderPrice > 0
 ```
 
 MeetingCapacity_is_not_greater_than_0
-``` sql
+
+```sql
 MeetingCapacity > 0
 ```
 
 ### Exams:
+
 Grade_has_to_be_between_0_and_100
-``` sql
+
+```sql
 Grade > 0 AND Grade <= 100
 ```
 
 ### Payments:
+
 Amount_is_not_greater_than_0
-``` sql
+
+```sql
 Amount > 0
 ```
 
 # Widoki
+
 Widoki jeszcze nie były testowane w bazie, ze względu na to, że diagram bazy jeszcze nie jest zatwierdzony. Mogą zawierać drobne literówki lub błędy.
 
-
-
-
 #### Studenci którzy mają frekwencje poniżej progu zdawalności (spośród spotkań które się odbyły - tylko te spotkania na które jest zapisany) RS
-``` sql
+
+```sql
 -- CREATE VIEW [Students under attendance threshold]
 -- SELECT FirstName, LastName, TotalAbsence
 -- FROM (SELECT SAb.UserID, FirstName, LastName,
@@ -185,7 +204,7 @@ Widoki jeszcze nie były testowane w bazie, ze względu na to, że diagram bazy 
 --         FROM StudiesAbsences as SAb
 --         JOIN Users u on u.UserID = SAb.UserID
 --         GROUP BY SAb.UserID, FirstName, LastName)
--- WHERE TotalAbsence / 
+-- WHERE TotalAbsence /
 --     (SELECT COUNT(StudiesID) as AllMeetings
 --     FROM StudiesMeetings as SM
 --     WHERE MeetingDate < GETDATE()
@@ -212,11 +231,9 @@ FROM (SELECT SAb.UserID, FirstName, LastName,
 WHERE TotalAbsence / FullAttendance >= 0.2
 ```
 
-
-
-
 #### Łączny przychód z każdego miesiąca każdego roku -- WIP (tu mozna group by cube czy tam rollup) RS
-``` sql
+
+```sql
 CREATE VIEW [Total income by month of each year]
 
 WITH YearMonthDates AS (
@@ -238,11 +255,9 @@ ORDER BY Rok DESC, Miesiąc ASC
 -- ORDER BY Rok DESC, Miesiąc ASC
 ```
 
-
-
-
 #### Zestawienie przychodów dla każdego webinaru/kursu/studium - RS
-``` sql
+
+```sql
 
 SELECT TotalIncomeRaport.WebCourStudID AS wcsID, TotalIncomeRaport.Title AS Title,
          TotalIncomeRaport.Type AS Type, SUM(TotalIncomeRaport.Price) AS TotalPrice
@@ -262,8 +277,8 @@ FROM (
     SELECT s.StudiesID AS WebCourStudID, s.Title as Title, 'Studium' AS Type,  SUM(od.Price) AS Price
     FROM OrderDetails od JOIN StudiesMeetings sm ON od.ProductID = sm.ProductID JOIN StudiesRallies sr ON sm.RallyID = sr.ProductID JOIN
     Studies s ON sr.StudiesID = s.StudiesID
-    GROUP BY s.StudiesID, s.Title 
-    
+    GROUP BY s.StudiesID, s.Title
+
     UNION ALL
 
     SELECT c.CourseID AS WebCourStudID, c.Title as Title, 'Course' AS Type, SUM(od.Price) AS Price
@@ -283,51 +298,142 @@ GROUP BY TotalIncomeRaport.WebCourStudID, TotalIncomeRaport.Title, TotalIncomeRa
 
 ```
 
-
-
-
 #### Lista osób które mają niezapłacone zamówienia
+
 #### (nic nie wpłaciły lub coś wpłaciły ale nie całość) - Paweł G
-``` sql
+
+```sql
+CREATE VIEW UnpaidOrders AS
+SELECT u.UserID,
+       u.FirstName,
+       u.LastName,
+       u.Email,
+       o.OrderID,
+       o.OrderDate,
+       ISNULL(SUM(p.Amount), 0)                   AS TotalPaid,
+       SUM(OD.Price)                              AS TotalOrderValue,
+       (SUM(OD.Price) - ISNULL(SUM(p.Amount), 0)) AS RemainingAmount
+FROM Orders o
+         JOIN OrderDetails OD ON o.OrderID = OD.OrderID
+         JOIN
+     Users u ON o.CustomerID = u.UserID
+         LEFT JOIN
+     Payments p ON OD.OrderDetailID = p.OrderDetailID
+GROUP BY u.UserID, u.FirstName, u.LastName, u.Email, o.OrderID, o.OrderDate
+HAVING (SUM(OD.Price) - ISNULL(SUM(p.Amount), 0)) > 0;
 ```
-
-
-
 
 #### Ogólny raport dotyczący liczby zapisanych osób na przyszłe wydarzenia (z informacją, czy wydarzenie jest stacjonarnie, czy zdalnie). - Paweł G
-``` sql
+
+```sql
+CREATE VIEW FutureMeetings AS
+SELECT
+    sm.ProductID,
+    sm.MeetingDate,
+    sm.Title,
+    smt.MeetingType,
+    COUNT(DISTINCT o.CustomerID) AS RegisteredUsers
+FROM
+    StudiesMeetings sm
+        JOIN
+    StudiesMeetingType smt ON sm.MeetingTypeID = smt.MeetingTypeID
+        JOIN
+    Products p ON sm.ProductID = p.ProductID
+        JOIN
+    OrderDetails od ON p.ProductID = od.ProductID
+        JOIN
+    Orders o ON od.OrderID = o.OrderID
+WHERE
+    sm.MeetingDate > GETDATE()
+GROUP BY
+    sm.ProductID, sm.MeetingDate, sm.Title, smt.MeetingType;
+
 ```
 
+#### Ogólny raport dotyczący frekwencji na zakończonych już wydarzeniach (po jednym widoku dla StudiesMeetings/Webinars/Modules). - Paweł G
 
+```sql
+--- StudiesMeetings
+CREATE VIEW PastMeetingsAttendance AS
+SELECT sm.ProductID,
+       sm.MeetingDate,
+       sm.Title,
+       (SELECT COUNT(*)
+        FROM StudiesAbsences sa
+        WHERE sa.ProductID = sm.ProductID) AS AbsentUsers,
+       (SELECT COUNT(*)
+        FROM Orders o
+                 JOIN OrderDetails OD ON o.OrderID = OD.OrderID AND sm.ProductID = OD.ProductID
+                 LEFT JOIN StudiesAbsences sa ON sa.UserID = o.CustomerID
+        WHERE sa.UserID IS NULL)           AS PresentUsers,
+       (SELECT COUNT(*)
+        FROM Orders
+                 JOIN OrderDetails OD ON Orders.OrderID = OD.OrderID
+        WHERE sm.ProductID = OD.ProductID) AS TotalUsers
+FROM StudiesMeetings sm
+WHERE sm.MeetingDate < GETDATE()
+GROUP BY sm.ProductID, sm.MeetingDate, sm.Title;
 
+--- Webinars
+CREATE VIEW PastWebinarsAttendance AS
+SELECT w.WebinarID,
+       w.MeetingDate,
+       w.Title,
+       (SELECT COUNT(*)
+        FROM WebinarAbsences wa
+        WHERE w.WebinarID = wa.WebinarID) AS AbsentUsers,
+       (SELECT COUNT(*)
+        FROM Orders o
+                 JOIN OrderDetails OD ON o.OrderID = OD.OrderID AND w.WebinarID = OD.ProductID
+                 LEFT JOIN WebinarAbsences wa ON wa.UserID = o.CustomerID
+        WHERE wa.UserID IS NULL)                                         AS PresentUsers,
+       (SELECT COUNT(*)
+        FROM Orders
+                 JOIN OrderDetails OD ON Orders.OrderID = OD.OrderID
+        WHERE w.WebinarID = OD.ProductID)                                AS TotalUsers
+FROM Webinars w
+WHERE w.MeetingDate < GETDATE()
+GROUP BY w.WebinarID, w.MeetingDate, w.Title;
 
+--- Modules
+CREATE VIEW PastModulesAttendance AS
+SELECT m.ModuleID,
+       m.MeetingDate,
+       (SELECT COUNT(*)
+        FROM ModuleAbsences ma
+        WHERE m.ModuleID = ma.ModuleID) AS AbsentUsers,
+       (SELECT COUNT(*)
+        FROM Orders o
+                 JOIN OrderDetails OD ON o.OrderID = OD.OrderID AND m.ModuleID = OD.ProductID
+                 LEFT JOIN ModuleAbsences ma ON ma.UserID = o.CustomerID
+        WHERE ma.UserID IS NULL)                                         AS PresentUsers,
+       (SELECT COUNT(*)
+        FROM Orders
+                 JOIN OrderDetails OD ON Orders.OrderID = OD.OrderID
+        WHERE m.ModuleID = OD.ProductID)                                AS TotalUsers
+FROM Modules m
+WHERE m.MeetingDate < GETDATE()
+GROUP BY m.ModuleID, m.MeetingDate;
 
-#### Ogólny raport dotyczący frekwencji na zakończonych już wydarzeniach. - Paweł G
-``` sql
 ```
-
-
-
-
 
 #### Lista obecności dla każdego szkolenia z datą, imieniem, nazwiskiem i informacją czy uczestnik był obecny, czy nie. - Pawel S
-``` sql
+
+```sql
+
 ```
 
-
-
-
-
 #### Raport bilokacji: lista osób, które są zapisane na co najmniej dwa przyszłe szkolenia, które ze sobą kolidują czasowo. - Pawel S
-``` sql
+
+```sql
 CREATE VIEW ConflictingMeetings AS
-SELECT 
+SELECT
     u.UserID,
     sm1.MeetingDate AS MeetingDate1,
     sm2.MeetingDate AS MeetingDate2,
     sm1.Title AS Meeting1Title,
     sm2.Title AS Meeting2Title
-FROM 
+FROM
     Users u
 JOIN Orders o1 ON u.UserID = o1.CustomerID
 JOIN OrderDetails od1 ON o1.OrderID = od1.OrderID
@@ -336,29 +442,23 @@ JOIN Orders o2 ON u.UserID = o2.CustomerID
 JOIN OrderDetails od2 ON o2.OrderID = od2.OrderID
 JOIN StudiesRallies sr ON od2.ProductID = sr.StudiesID
 JOIN StudiesMeetings sm2 ON sr.ProductID = sm2.ProductID
-WHERE 
+WHERE
     sm1.MeetingDate = sm2.MeetingDate
     AND sm1.ProductID != sm2.ProductID
     AND sm1.MeetingDate > GETDATE();
 ```
 
-
-
-
-
 #### Raport trendów zapisów na webinary i kursy - Pawel S
+
 Widok wyświetlający liczbę zapisów na webinary, kursy i studia w podziale na miesiące, w ciągu ostatnich dwóch lat.
+
 ```sql
 
 ```
 
-
-
-
-
 # Kod DDL
 
-``` sql
+```sql
 -- Table: ApprenticeshipAbsences
 CREATE TABLE ApprenticeshipAbsences (
     ApprenticeshipAbsenceID int  NOT NULL,
