@@ -320,7 +320,26 @@ GROUP BY TotalIncomeRaport.WebCourStudID, TotalIncomeRaport.Title, TotalIncomeRa
 
 #### Raport bilokacji: lista osób, które są zapisane na co najmniej dwa przyszłe szkolenia, które ze sobą kolidują czasowo. - Pawel S
 ``` sql
-
+CREATE VIEW ConflictingMeetings AS
+SELECT 
+    u.UserID,
+    sm1.MeetingDate AS MeetingDate1,
+    sm2.MeetingDate AS MeetingDate2,
+    sm1.Title AS Meeting1Title,
+    sm2.Title AS Meeting2Title
+FROM 
+    Users u
+JOIN Orders o1 ON u.UserID = o1.CustomerID
+JOIN OrderDetails od1 ON o1.OrderID = od1.OrderID
+JOIN StudiesMeetings sm1 ON od1.ProductID = sm1.ProductID
+JOIN Orders o2 ON u.UserID = o2.CustomerID
+JOIN OrderDetails od2 ON o2.OrderID = od2.OrderID
+JOIN StudiesRallies sr ON od2.ProductID = sr.StudiesID
+JOIN StudiesMeetings sm2 ON sr.ProductID = sm2.ProductID
+WHERE 
+    sm1.MeetingDate = sm2.MeetingDate
+    AND sm1.ProductID != sm2.ProductID
+    AND sm1.MeetingDate > GETDATE();
 ```
 
 
