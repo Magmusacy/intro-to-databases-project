@@ -192,7 +192,7 @@ Amount > 0
 
 # Widoki
 
-Widoki jeszcze nie były testowane w bazie, ze względu na to, że diagram bazy jeszcze nie jest zatwierdzony. Mogą zawierać drobne literówki lub błędy.
+Widoki jeszcze nie były testowane w bazie, ze względu na brak wygenerowanych testowych danych.
 
 #### Studenci którzy mają frekwencje poniżej progu zdawalności (spośród spotkań które się odbyły - tylko te spotkania na które jest zapisany) RS
 
@@ -417,13 +417,32 @@ GROUP BY m.ModuleID, m.MeetingDate;
 
 ```
 
-#### Lista obecności dla każdego szkolenia z datą, imieniem, nazwiskiem i informacją czy uczestnik był obecny, czy nie. - Pawel S
+#### Lista obecności dla każdego kursu z datą, imieniem, nazwiskiem i informacją czy uczestnik był obecny, czy nie.
 
 ```sql
-
+CREATE VIEW AttendanceList AS
+SELECT 
+    c.Title AS CourseTitle,
+    m.MeetingDate AS MeetingDate,
+    u.FirstName AS FirstName,
+    u.LastName AS LastName,/
+    CASE 
+        WHEN ma.AbsenceDate IS NULL THEN 'Present'
+        ELSE 'Absent'
+    END AS AttendanceStatus
+FROM 
+    Courses c
+JOIN 
+    Modules m ON c.CourseID = m.CourseID
+JOIN 
+    Orders o ON c.CourseID = o.ProductID
+JOIN 
+    Users u ON o.CustomerID = u.UserID
+LEFT JOIN 
+    ModuleAbsences ma ON ma.UserID = u.UserID AND ma.ModuleID = m.ModuleID;
 ```
 
-#### Raport bilokacji: lista osób, które są zapisane na co najmniej dwa przyszłe szkolenia, które ze sobą kolidują czasowo. - Pawel S
+#### Raport bilokacji: lista osób, które są zapisane na co najmniej dwa przyszłe szkolenia, które ze sobą kolidują czasowo.
 
 ```sql
 CREATE VIEW ConflictingMeetings AS
@@ -444,16 +463,38 @@ JOIN StudiesRallies sr ON od2.ProductID = sr.StudiesID
 JOIN StudiesMeetings sm2 ON sr.ProductID = sm2.ProductID
 WHERE
     sm1.MeetingDate = sm2.MeetingDate
-    AND sm1.ProductID != sm2.ProductID
+    AND sm1.ProductID < sm2.ProductID
     AND sm1.MeetingDate > GETDATE();
 ```
 
-#### Raport trendów zapisów na webinary i kursy - Pawel S
+#### Raport trendów zapisów
 
 Widok wyświetlający liczbę zapisów na webinary, kursy i studia w podziale na miesiące, w ciągu ostatnich dwóch lat.
-
 ```sql
-
+CREATE VIEW EnrollmentStatistics AS
+SELECT 
+    FORMAT(o.OrderDate, 'yyyy-MM') AS Month,
+    CASE 
+        WHEN EXISTS (SELECT 1 FROM Courses c WHERE c.CourseID = o.ProductID) THEN 'Course'
+        WHEN EXISTS (SELECT 1 FROM Webinars w WHERE w.WebinarID = o.ProductID) THEN 'Webinar'
+        WHEN EXISTS (SELECT 1 FROM Studies s WHERE s.StudiesID = o.ProductID) THEN 'Studies'
+        ELSE 'Unknown'
+    END AS ProductType,
+    COUNT(o.OrderID) AS EnrollmentCount
+FROM 
+    Orders o
+WHERE 
+    o.OrderDate >= DATEADD(YEAR, -2, GETDATE())
+GROUP BY 
+    FORMAT(o.OrderDate, 'yyyy-MM'),
+    CASE 
+        WHEN EXISTS (SELECT 1 FROM Courses c WHERE c.CourseID = o.ProductID) THEN 'Course'
+        WHEN EXISTS (SELECT 1 FROM Webinars w WHERE w.WebinarID = o.ProductID) THEN 'Webinar'
+        WHEN EXISTS (SELECT 1 FROM Studies s WHERE s.StudiesID = o.ProductID) THEN 'Studies'
+        ELSE 'Unknown'
+    END
+ORDER BY 
+    Month ASC, ProductType ASC;
 ```
 
 # Kod DDL
