@@ -569,6 +569,16 @@ BEGIN
 END;
 ```
 
+
+- Throw zamiast rise error
+- Uzupełnic dane i przetestować widoki
+- Wyrzucic trigger zabezpieczajacy przed nadpłatą
+- Procedury dodawania webinarów, kursów i studiów
+- Procedury sprawdzające aby nie dało się kupić starego czegoś
+- Procedura finalizacji koszyka
+- Napisac ze koszyk jest we froncie
+
+
 ``` sql
 CREATE TRIGGER CheckMeetingCapacity
     ON OrderDetails
