@@ -1,4 +1,4 @@
----
+    ---
 
 # Projekt - Bazy danych
 Dzień i godzina zajęć: środa 18:30
@@ -246,6 +246,8 @@ ORDER BY Rok DESC, Miesiąc ASC
 #### Zestawienie przychodów dla każdego webinaru/kursu/studium
 
 ```sql
+CREATE VIEW [Income]
+
 SELECT TotalIncomeRaport.WebCourStudID AS wcsID, 
     TotalIncomeRaport.Title AS Title,
     TotalIncomeRaport.Type AS Type, 
@@ -557,8 +559,7 @@ BEGIN
               ) >= s.StudiesCapacity
     )
         BEGIN
-            RAISERROR ('Brak dostępnych wolnych miejsc na to studium!', 16, 1);
-            ROLLBACK TRANSACTION;
+            THROW 5001, 'Brak dostępnych wolnych miejsc na to studium!', 1;
         END
     ELSE
         BEGIN
@@ -570,13 +571,15 @@ END;
 ```
 
 
-- Throw zamiast rise error
-- Uzupełnic dane i przetestować widoki
+- Throw zamiast rise error (zrobione)
+- Uzupełnic dane i przetestować widoki 
 - Wyrzucic trigger zabezpieczajacy przed nadpłatą
 - Procedury dodawania webinarów, kursów i studiów
 - Procedury sprawdzające aby nie dało się kupić starego czegoś
 - Procedura finalizacji koszyka
 - Napisac ze koszyk jest we froncie
+
+- Trigger aby nie kupic meetinga ktory juz jest w studiach ktore kupiono
 
 
 ``` sql
@@ -596,8 +599,7 @@ BEGIN
               ) >= sm.MeetingCapacity
     )
         BEGIN
-            RAISERROR ('Brak dostępnych miejsc na wybrane spotkanie!', 16, 1);
-            ROLLBACK TRANSACTION;
+            THROW 5001, 'Brak dostępnych miejsc na wybrane spotkanie!', 1;
         END
     ELSE
         BEGIN
@@ -622,8 +624,7 @@ BEGIN
                       FROM OrderDetails od
                       WHERE od.ProductID = c.CourseID) >= c.ParticipantsLimit)
         BEGIN
-            RAISERROR ('Brak dostępnych miejsc na wybrane spotkanie!', 16, 1);
-            ROLLBACK TRANSACTION;
+            THROW 5001, 'Brak dostępnych miejsc na wybrane spotkanie!', 1;
         END
     ELSE
         BEGIN
@@ -656,17 +657,61 @@ BEGIN
     WHERE OrderDetailID = @OrderDetailID;
     IF @TotalPaid > @ProductPrice
         BEGIN
-            ROLLBACK TRANSACTION;
-            RAISERROR ('Wartość wpłaty nie może przekraczać wartości zamówienia.', 16, 1);
+            THROW 5001, 'Wartość wpłaty nie może przekraczać wartości zamówienia.', 1;
         END
 END;
 ```
 
 
 
+# Procedury
+## 1. Tworzenie nowego zamówienia
+W naszej implementacji zakładamy, że koszyk jest tworzony po stronie front-endu.
 
+Cena jest znajdywana przy użyciu funkcji GetProductPrice(ProductID), której implementacja znajduje się w sekcji z funkcjami.
 
+Zabezpieczenia przed kupnem konfliktujących produktów i przedawnionych produktów działają w taki sposób, że procedura **CreateNewOrder** tworzy nowe zamówienie po czym zaczyna dodawać wszystkie zamówione produkty do **OrderDetails**. **OrderDetails** posiada *triggery* zabezpieczające przed dodaniem konfliktujących produktów i w przypadku konfliktu zwraca błąd. Ten błąd jest przechwytywany w tej procedurze i następuje cofnięcie tranzakcji i rzucenie wyjątku.
+```sql
+CREATE PROCEDURE CreateNewOrder
+    @CustomerID INT,
+    @Products NVARCHAR(MAX) -- JSON z produktami tworzony w back-endzie
+AS
+BEGIN
+    DECLARE @OrderID INT;
 
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        INSERT INTO Orders (CustomerID, OrderDate)
+        VALUES (@CustomerID, GETDATE());
+
+        SET @OrderID = SCOPE_IDENTITY();
+
+        DECLARE @JSON NVARCHAR(MAX) = @Products;
+
+        INSERT INTO OrderDetails (OrderID, ProductID, Price)
+        SELECT 
+            @OrderID,
+            JSON_VALUE(value, '$.ProductID') AS ProductID,
+            dbo.GetProductPrice(JSON_VALUE(value, '$.ProductID')) AS Price
+        FROM OPENJSON(@JSON);
+
+        COMMIT TRANSACTION;
+
+        PRINT 'Zamówienie zostało utworzone pomyślnie.';
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW 5001, 'Konflikt w produktach', 1;
+    END CATCH;
+END;
+```
+#### Przykład użycia
+```sql
+EXEC CreateNewOrder 
+    @CustomerID = 1,
+    @Products = '[{"ProductID": 1}, {"ProductID": 2}]';
+```
 
 
 # Kod DDL
