@@ -1,4 +1,4 @@
-    ---
+ ---
 
 # Projekt - Bazy danych
 Dzień i godzina zajęć: środa 18:30
@@ -6,6 +6,20 @@ Dzień i godzina zajęć: środa 18:30
 Autorzy: *Radosław Szepielak, Paweł Saltarius, Paweł Gadomski*
 
 ---
+
+### Kolejność sekcji
+1. Wymagania i funkcje systemu
+2. Diagram
+3. Checki
+4. Widoki
+5. Triggery
+6. Procedury
+7. Funkcje
+8. Indeksy
+9. Uprawnienia
+10. Kod DDL
+
+<br/>
 
 # Wymagania i funkcje systemu
 
@@ -104,11 +118,11 @@ Pracownik może także przypisać salę do poszczególnych zajęć
 
 # Diagram
 
-![alt text](diagramy/diagram_4.png)
+![alt text](diagramy/diagram_5.png)
 
 # Checki
 
-### Courses:
+#### Courses:
 
 Price_is_not_greater_than_0
 
@@ -122,7 +136,7 @@ ParticipantsLimit_is_either_null_or \_greater_than_0
 ParticipantsLimit IS NULL OR ParticipantsLimit > 0
 ```
 
-### Studies:
+#### Studies:
 
 Capacity_is_not_greater_than_0
 
@@ -136,7 +150,7 @@ Price_is_not_greater_than_0
 Price > 0
 ```
 
-### Webinars:
+#### Webinars:
 
 Price_is_not_greater_than_0
 
@@ -144,7 +158,7 @@ Price_is_not_greater_than_0
 Price > 0
 ```
 
-### Users:
+#### Users:
 
 BirthDate_is_not_from_the_future
 
@@ -152,7 +166,7 @@ BirthDate_is_not_from_the_future
 BirthDate <= GETDATE()
 ```
 
-### OrderDetails:
+#### OrderDetails:
 
 Price_is_not_greater_than_0
 
@@ -160,7 +174,7 @@ Price_is_not_greater_than_0
 Price > 0
 ```
 
-### StudiesMeetings:
+#### StudiesMeetings:
 
 Price_is_not_greater_than_0
 
@@ -174,7 +188,7 @@ MeetingCapacity_is_not_greater_than_0
 MeetingCapacity > 0
 ```
 
-### Exams:
+#### Exams:
 
 Grade_has_to_be_between_0_and_100
 
@@ -182,7 +196,7 @@ Grade_has_to_be_between_0_and_100
 Grade > 0 AND Grade <= 100
 ```
 
-### Payments:
+#### Payments:
 
 Amount_is_not_greater_than_0
 
@@ -190,64 +204,33 @@ Amount_is_not_greater_than_0
 Amount > 0
 ```
 
-## Widoki
+# Widoki
 
-Widoki jeszcze nie były testowane w bazie, ze względu na brak wygenerowanych testowych danych.
-
-#### Studenci którzy mają frekwencje poniżej progu zdawalności (spośród spotkań które się odbyły - tylko te spotkania na które jest zapisany)
+#### Łączny przychód z każdego miesiąca każdego roku
 
 ```sql
-CREATE VIEW [Students under attendance threshold]
-SELECT Attendances.FirstName, Attendances.LastName, TotalAbsence, FullAttendance
-FROM (SELECT SAb.UserID, FirstName, LastName,
-        COUNT(SAb.UserID) AS TotalAbsence
-    FROM StudiesAbsences AS SAb
-    JOIN Users u ON u.UserID = SAb.UserID
-    GROUP BY SAb.UserID, FirstName, LastName) AS Absences
-
-    JOIN
-
-    (SELECT u.UserID, u.FirstName, u.LastName,
-     COUNT(u.UserID) AS FullAttendance
-    FROM Users u 
-    JOIN Orders o 
-        ON u.UserID = o.CustomerID 
-    JOIN OrderDetails od 
-        ON o.OrderID = od.OrderID 
-    JOIN StudiesMeetings sm 
-        ON od.ProductID =  sm.ProductID
-    WHERE sm.MeetingDate < GETDATE()
-    GROUP BY u.UserID, u.FirstName, u.LastName) AS Attendances
-        ON Attendances.UserID = Absences.UserID
-WHERE TotalAbsence / FullAttendance >= 0.2
-```
-
-#### Łączny przychód z każdego miesiąca każdego roku -- WIP (tu mozna group by cube czy tam rollup)
-
-```sql
-CREATE VIEW [Total income by month of each year]
-
+CREATE VIEW [IncomeMonth]
+AS
 WITH YearMonthDates AS (
-    SELECT DISTINCT YEAR(p.PaymentDate) as Rok, m.Miesiąc
-    FROM Payments p 
-    CROSS JOIN
-         (SELECT TOP 12 ROW_NUMBERS() OVER (ORDER BY (SELECT NULL)) 
-            AS Miesiąc
+    SELECT DISTINCT YEAR(o.OrderDate) as Rok, m.Miesiąc
+    FROM Orders o
+             CROSS JOIN
+         (SELECT TOP 12 ROW_NUMBER() OVER (ORDER BY (SELECT NULL))
+                            AS Miesiąc
           FROM master..spt_values) m)
 SELECT ymd.Rok Rok, ymd.Miesiąc Miesiąc, ISNULL(SUM(Amount), 0) Przychód
-FROM YearMonthDates ymd 
-LEFT JOIN Payments p
-    ON ymd.Rok = YEAR(p.PaymentDate) 
-    AND ymd.Miesiąc = MONTH(p.PaymentDate)
+FROM YearMonthDates ymd
+         LEFT JOIN Payments p
+                   ON ymd.Rok = YEAR(p.PaymentDate)
+                       AND ymd.Miesiąc = MONTH(p.PaymentDate)
 GROUP BY ROLLUP(ymd.Rok, ymd.Miesiąc)
-ORDER BY Rok DESC, Miesiąc ASC
 ```
 
 #### Zestawienie przychodów dla każdego webinaru/kursu/studium
 
 ```sql
 CREATE VIEW [Income]
-
+AS
 SELECT TotalIncomeRaport.WebCourStudID AS wcsID, 
     TotalIncomeRaport.Title AS Title,
     TotalIncomeRaport.Type AS Type, 
@@ -316,7 +299,7 @@ GROUP BY TotalIncomeRaport.WebCourStudID,
 
 #### Lista osób które mają niezapłacone zamówienia
 
-#### (nic nie wpłaciły lub coś wpłaciły ale nie całość)
+**(nic nie wpłaciły lub coś wpłaciły ale nie całość)** 
 
 ```sql
 CREATE VIEW UnpaidOrders AS
@@ -349,17 +332,23 @@ SELECT
     sm.MeetingDate,
     sm.Title,
     smt.MeetingType,
-    COUNT(DISTINCT o.CustomerID) AS RegisteredUsers
+    COUNT(DISTINCT o.CustomerID) + COUNT(DISTINCT odr.OrderID) AS RegisteredUsers
 FROM
     StudiesMeetings sm
         JOIN
     StudiesMeetingType smt ON sm.MeetingTypeID = smt.MeetingTypeID
         JOIN
     Products p ON sm.ProductID = p.ProductID
-        JOIN
+        LEFT JOIN
     OrderDetails od ON p.ProductID = od.ProductID
-        JOIN
+        LEFT JOIN
     Orders o ON od.OrderID = o.OrderID
+        LEFT JOIN
+    OrderDetails odr ON odr.ProductID IN (
+        SELECT sr.ProductID
+        FROM StudiesRallies sr
+        WHERE sr.StudiesID = sm.RallyID
+    )
 WHERE
     sm.MeetingDate > GETDATE()
 GROUP BY
@@ -453,9 +442,9 @@ SELECT
     c.Title AS CourseTitle,
     m.MeetingDate AS MeetingDate,
     u.FirstName AS FirstName,
-    u.LastName AS LastName,/
+    u.LastName AS LastName,
     CASE 
-        WHEN ma.AbsenceDate IS NULL THEN 'Present'
+        WHEN ma.UserID IS NULL THEN 'Present'
         ELSE 'Absent'
     END AS AttendanceStatus
 FROM 
@@ -463,45 +452,15 @@ FROM
 JOIN 
     Modules m ON c.CourseID = m.CourseID
 JOIN 
-    Orders o ON c.CourseID = o.ProductID
+    OrderDetails od ON c.CourseID = od.ProductID
+JOIN
+    Orders o ON od.OrderID = o.OrderID
 JOIN 
     Users u ON o.CustomerID = u.UserID
 LEFT JOIN 
     ModuleAbsences ma 
         ON ma.UserID = u.UserID 
         AND ma.ModuleID = m.ModuleID;
-```
-
-#### Raport bilokacji: lista osób, które są zapisane na co najmniej dwa przyszłe szkolenia, które ze sobą kolidują czasowo.
-
-```sql
-CREATE VIEW ConflictingMeetings AS
-SELECT
-    u.UserID,
-    sm1.MeetingDate AS MeetingDate1,
-    sm2.MeetingDate AS MeetingDate2,
-    sm1.Title AS Meeting1Title,
-    sm2.Title AS Meeting2Title
-FROM
-    Users u
-JOIN Orders o1 
-    ON u.UserID = o1.CustomerID
-JOIN OrderDetails od1 
-    ON o1.OrderID = od1.OrderID
-JOIN StudiesMeetings sm1 
-    ON od1.ProductID = sm1.ProductID
-JOIN Orders o2 
-    ON u.UserID = o2.CustomerID
-JOIN OrderDetails od2 
-    ON o2.OrderID = od2.OrderID
-JOIN StudiesRallies sr 
-    ON od2.ProductID = sr.StudiesID
-JOIN StudiesMeetings sm2 
-    ON sr.ProductID = sm2.ProductID
-WHERE
-    sm1.MeetingDate = sm2.MeetingDate
-    AND sm1.ProductID < sm2.ProductID
-    AND sm1.MeetingDate > GETDATE();
 ```
 
 #### Raport trendów zapisów
@@ -512,110 +471,97 @@ CREATE VIEW EnrollmentStatistics AS
 SELECT 
     FORMAT(o.OrderDate, 'yyyy-MM') AS Month,
     CASE 
-        WHEN EXISTS 
-            (SELECT 1 FROM Courses c WHERE c.CourseID = o.ProductID) THEN 'Course'
-        WHEN EXISTS 
-            (SELECT 1 FROM Webinars w WHERE w.WebinarID = o.ProductID) THEN 'Webinar'
-        WHEN EXISTS 
-            (SELECT 1 FROM Studies s WHERE s.StudiesID = o.ProductID) THEN 'Studies'
-        ELSE 'Unknown'
+        WHEN c.CourseID IS NOT NULL THEN 'Course'
+        WHEN w.WebinarID IS NOT NULL THEN 'Webinar'
+        WHEN s.StudiesID IS NOT NULL THEN 'Study'
+        ELSE 'Course Meeting'
     END AS ProductType,
     COUNT(o.OrderID) AS EnrollmentCount
 FROM 
     Orders o
+JOIN
+    OrderDetails od
+    ON od.OrderID = o.OrderID
+LEFT JOIN Courses c ON od.ProductID = c.CourseID
+LEFT JOIN Webinars w ON od.ProductID = w.WebinarID
+LEFT JOIN Studies s ON od.ProductID = s.StudiesID
 WHERE 
     o.OrderDate >= DATEADD(YEAR, -2, GETDATE())
 GROUP BY 
     FORMAT(o.OrderDate, 'yyyy-MM'),
     CASE 
-        WHEN EXISTS 
-            (SELECT 1 FROM Courses c WHERE c.CourseID = o.ProductID) THEN 'Course'
-        WHEN EXISTS 
-            (SELECT 1 FROM Webinars w WHERE w.WebinarID = o.ProductID) THEN 'Webinar'
-        WHEN EXISTS 
-            (SELECT 1 FROM Studies s WHERE s.StudiesID = o.ProductID) THEN 'Studies'
-        ELSE 'Unknown'
-    END
-ORDER BY 
-    Month ASC, ProductType ASC;
+        WHEN c.CourseID IS NOT NULL THEN 'Course'
+        WHEN w.WebinarID IS NOT NULL THEN 'Webinar'
+        WHEN s.StudiesID IS NOT NULL THEN 'Study'
+        ELSE 'Course Meeting'
+    END;
 ```
 
-# Triggery:
-
+# Triggery
+### 1. Trigger zapewniający spójność OrderDetails
 ``` sql
-CREATE TRIGGER CheckStudiesCapacity
+CREATE TRIGGER UnifiedTriggerOrderDetails
     ON OrderDetails
     INSTEAD OF INSERT
     AS
 BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-                 JOIN Studies s ON i.ProductID = s.StudiesID
-        WHERE (
-                  SELECT COUNT(*)
-                  FROM OrderDetails od
-                  WHERE od.ProductID = s.StudiesID
-              ) >= s.StudiesCapacity
-    )
+    -- Sprawdzenie pojemności studiów
+    IF EXISTS (SELECT 1
+               FROM INSERTED i
+                        JOIN Studies s ON i.ProductID = s.StudiesID
+               WHERE (SELECT COUNT(*)
+                      FROM OrderDetails od
+                      WHERE od.ProductID = s.StudiesID) >= s.StudiesCapacity)
         BEGIN
-            THROW 5001, 'Brak dostępnych wolnych miejsc na to studium!', 1;
-        END
-    ELSE
+            THROW 50001, N'Brak dostępnych wolnych miejsc na to studium!', 1;
+        END;
+
+    -- Sprawdzenie, czy użytkownik próbuje dodać produkt związany z `StudiesRallies` bez posiadania 'Studies'
+    IF EXISTS (SELECT 1
+               FROM INSERTED i
+                        JOIN Orders o ON i.OrderID = o.OrderID
+                        JOIN StudiesRallies sr ON i.ProductID = sr.ProductID
+               WHERE NOT EXISTS (SELECT 1
+                                 FROM Orders o2
+                                          JOIN OrderDetails od2 ON o2.OrderID = od2.OrderID
+                                 WHERE o2.CustomerID = o.CustomerID
+                                   AND od2.ProductID = sr.StudiesID))
         BEGIN
-            INSERT INTO OrderDetails (OrderID, ProductID, Price)
-            SELECT OrderID, ProductID, Price
-            FROM inserted;
-        END
-END;
-```
+            THROW 50002, N'Nie możesz kupić tego StudiesRallies bez posiadania odpowiedniego Studies.', 1;
+        END;
 
-
-- Throw zamiast rise error (zrobione)
-- Uzupełnic dane i przetestować widoki 
-- Wyrzucic trigger zabezpieczajacy przed nadpłatą
-- Procedury dodawania webinarów, kursów i studiów
-- Procedury sprawdzające aby nie dało się kupić starego czegoś
-- Procedura finalizacji koszyka
-- Napisac ze koszyk jest we froncie
-
-- Trigger aby nie kupic meetinga ktory juz jest w studiach ktore kupiono
-
-
-``` sql
-CREATE TRIGGER CheckMeetingCapacity
-    ON OrderDetails
-    INSTEAD OF INSERT
-    AS
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-                 JOIN StudiesMeetings sm ON i.ProductID = sm.ProductID
-        WHERE (
-                  SELECT COUNT(*)
-                  FROM OrderDetails od
-                  WHERE od.ProductID = sm.ProductID
-              ) >= sm.MeetingCapacity
-    )
+    -- Sprawdzenie, czy użytkownik próbuje kupić `StudiesMeetings`, ale już kupił odpowiadające `Studies`
+    IF EXISTS (SELECT 1
+               FROM INSERTED i
+                        JOIN Orders o ON i.OrderID = o.OrderID
+                        JOIN StudiesMeetings sm ON i.ProductID = sm.ProductID
+               WHERE EXISTS (SELECT 1
+                             FROM Orders o2
+                                      JOIN OrderDetails od2 ON o2.OrderID = od2.OrderID
+                                      JOIN Studies s ON od2.ProductID = s.StudiesID
+                             WHERE o2.CustomerID = o.CustomerID
+                               AND s.StudiesID = sm.ProductID))
         BEGIN
-            THROW 5001, 'Brak dostępnych miejsc na wybrane spotkanie!', 1;
-        END
-    ELSE
-        BEGIN
-            INSERT INTO OrderDetails (OrderID, ProductID, Price)
-            SELECT OrderID, ProductID, Price
-            FROM inserted;
-        END
-END;
-```
+            THROW 50003, N'Nie możesz kupić tego StudiesMeeting ponieważ posiadasz już te studia.', 1;
+        END;
 
-``` sql
-CREATE TRIGGER CheckCourseCapacity
-    ON OrderDetails
-    INSTEAD OF INSERT
-    AS
-BEGIN
+    -- Sprawdzenie pojemności `StudiesMeetings` z uwzględnieniem `StudiesRallies`
+    IF EXISTS (SELECT 1
+               FROM INSERTED i
+                        JOIN StudiesMeetings sm ON i.ProductID = sm.ProductID
+               WHERE (SELECT COUNT(*)
+                      FROM OrderDetails od
+                      WHERE od.ProductID IN (SELECT sm2.ProductID
+                                             FROM StudiesMeetings sm2
+                                             WHERE sm2.MeetingCapacity = sm.MeetingCapacity
+                                             UNION
+                                             SELECT sr.ProductID
+                                             FROM StudiesRallies sr
+                                             WHERE sr.StudiesID = sm.ProductID)) >= sm.MeetingCapacity)
+        BEGIN
+            THROW 50004, N'Brak dostępnych wolnych miejsc na to spotkanie studiów!', 1;
+        END;
+
     IF EXISTS (SELECT 1
                FROM inserted i
                         JOIN Courses c ON i.ProductID = c.CourseID
@@ -624,48 +570,108 @@ BEGIN
                       FROM OrderDetails od
                       WHERE od.ProductID = c.CourseID) >= c.ParticipantsLimit)
         BEGIN
-            THROW 5001, 'Brak dostępnych miejsc na wybrane spotkanie!', 1;
+            THROW 50005, N'Brak dostępnych miejsc na ten kurs!', 1;
         END
-    ELSE
+
+    IF EXISTS (SELECT 1
+               FROM INSERTED i
+               WHERE dbo.GetProductStartDate(i.ProductID) < GETDATE())
         BEGIN
-            INSERT INTO OrderDetails (OrderID, ProductID, Price)
-            SELECT OrderID, ProductID, Price
-            FROM inserted;
-        END
+            THROW 50006, N'Nie można kupić produktu, który już się rozpoczął.', 1;
+        END;
+
+    INSERT INTO OrderDetails (OrderID, ProductID, Price)
+    SELECT OrderID, ProductID, Price
+    FROM INSERTED;
 END;
 ```
-
-``` sql
-CREATE TRIGGER CheckPaymentAmount
-    ON Payments
-    AFTER INSERT
+### 2. Sprawdza dodawanie nieobecności dla osoby, tylko która ma zakupiony Webinar oraz jest w pełni zapłacony.
+```sql
+CREATE TRIGGER CheckWebinarConditions
+    ON WebinarAbsences
+    INSTEAD OF INSERT
     AS
 BEGIN
-    
-    DECLARE @OrderDetailID INT;
-    DECLARE @TotalPaid MONEY;
-    DECLARE @ProductPrice MONEY;
+    SET NOCOUNT ON;
 
-    SELECT @OrderDetailID = OrderDetailID FROM inserted;
-
-    SELECT @TotalPaid = SUM(Amount)
-    FROM Payments
-    WHERE OrderDetailID = @OrderDetailID;
-
-    SELECT @ProductPrice = Price
-    FROM OrderDetails
-    WHERE OrderDetailID = @OrderDetailID;
-    IF @TotalPaid > @ProductPrice
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM Orders o
+                     JOIN OrderDetails od ON o.OrderID = od.OrderID
+            WHERE o.CustomerID = i.UserID
+              AND od.ProductID = i.WebinarID
+        )
+    )
         BEGIN
-            THROW 5001, 'Wartość wpłaty nie może przekraczać wartości zamówienia.', 1;
+            THROW 50002, N'Użytkownik nie zakupił tego webinaru', 1;
         END
+
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        WHERE EXISTS (
+            SELECT 1
+            FROM UnpaidOrders uo
+            WHERE uo.UserID = i.UserID
+              AND uo.OrderID IN (
+                SELECT o.OrderID
+                FROM Orders o
+                         JOIN OrderDetails od ON o.OrderID = od.OrderID
+                WHERE od.ProductID = i.WebinarID AND o.CustomerID = i.UserID
+            )
+        )
+    )
+        BEGIN
+            THROW 50001, N'Użytkownik ma niezapłacone zamówienia na ten webinar', 1;
+        END
+
+    INSERT INTO WebinarAbsences (UserID, WebinarID)
+    SELECT UserID, WebinarID
+    FROM inserted;
 END;
 ```
 
+### 3. Sprawdza czy osoba której dodajemy nieobecność do spotkania studyjnego jest powiązana z tym spotkaniem
+``` sql
+CREATE TRIGGER ValidateUserForAbsence
+    ON StudiesMeetingsAbsences
+    INSTEAD OF INSERT
+    AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM INSERTED i
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM OrderDetails od
+                     JOIN Orders o ON od.OrderID = o.OrderID
+            WHERE od.ProductID = i.ProductID
+              AND o.CustomerID = i.UserID
+            UNION
+            SELECT 1
+            FROM OrderDetails od
+                     JOIN Orders o ON od.OrderID = o.OrderID
+                     JOIN StudiesMeetings sm ON sm.ProductID = i.ProductID
+                     JOIN StudiesRallies sr ON sr.ProductID = sm.RallyID
+            WHERE o.CustomerID = i.UserID
+        )
+    )
+        BEGIN
+            THROW 50000, N'Użytkownik nie może być dodany, ponieważ nie ma zamówienia na odpowiedni StudiesMeeting lub Rally.', 1;
+        END;
+
+    INSERT INTO StudiesMeetingsAbsences (UserID, ProductID)
+    SELECT UserID, ProductID
+    FROM INSERTED;
+END;
+```
 
 
 # Procedury
-## 1. Tworzenie nowego zamówienia
+### 1. Tworzenie nowego zamówienia
 W naszej implementacji zakładamy, że koszyk jest tworzony po stronie front-endu.
 
 Cena jest znajdywana przy użyciu funkcji GetProductPrice(ProductID), której implementacja znajduje się w sekcji z funkcjami.
@@ -701,8 +707,9 @@ BEGIN
         PRINT 'Zamówienie zostało utworzone pomyślnie.';
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
-        THROW 5001, 'Konflikt w produktach', 1;
+        ROLLBACK TRANSACTION; 
+        PRINT ERROR_MESSAGE();
+        THROW;
     END CATCH;
 END;
 ```
@@ -713,43 +720,813 @@ EXEC CreateNewOrder
     @Products = '[{"ProductID": 1}, {"ProductID": 2}]';
 ```
 
+### 2. Tworzenie studiów
+```sql
+CREATE PROCEDURE AddStudy
+    @TeacherID INT,
+    @Title NVARCHAR(80),
+    @Description NTEXT,
+    @Price MONEY,
+    @StudiesCapacity INT,
+    @StartDate DATETIME
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF NOT EXISTS (SELECT 1
+                    FROM Teachers
+                    WHERE UserID = @TeacherID)
+        BEGIN
+            THROW 50001, N'Nauczyciel o podanym ID nie istnieje.', 1;
+        END;
+
+        INSERT INTO Products (TeacherID)
+        VALUES (@TeacherID);
+
+        DECLARE @NewProductID INT = SCOPE_IDENTITY();
+
+        INSERT INTO Studies (
+            StudiesID,
+            Title,
+            Description,
+            Price,
+            StudiesCapacity,
+            StartDate
+        )
+        VALUES (
+            @NewProductID,
+            @Title,
+            @Description,
+            @Price,
+            @StudiesCapacity,
+            @StartDate
+        );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+```
+
+### 3. Tworzenie zjazdu studiów
+```sql
+CREATE PROCEDURE CreateRally
+    @StudiesID INT,
+    @Price MONEY
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        INSERT INTO Products (TeacherID) VALUES (NULL);
+        DECLARE @NewProductID INT;
+        SET @NewProductID = SCOPE_IDENTITY();
+
+        INSERT INTO StudiesRallies (
+            ProductID,
+            StudiesID,
+            Price
+        )
+        VALUES (
+            @NewProductID,
+            @StudiesID,
+            @Price
+        );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+```
+### 4. Tworzenie spotkań studiów
+```sql
+CREATE PROCEDURE CreateStudiesMeeting
+    @RallyID INT,
+    @Title TEXT,
+    @Description TEXT,
+    @Semester INT,
+    @MeetingDate datetime,
+    @MeetingTypeID INT,
+    @MeetingCapacity INT,
+    @Price MONEY,
+    @TeacherID INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        INSERT INTO Products (TeacherID) VALUES (@TeacherID);
+        DECLARE @NewProductID INT;
+        SET @NewProductID = SCOPE_IDENTITY();
+
+        INSERT INTO StudiesMeetings (
+            ProductID,
+            RallyID,
+            Title,
+            Description,
+            Semester,
+            MeetingDate,
+            MeetingTypeID,
+            MeetingCapacity,
+            OutsiderPrice
+        )
+        VALUES (
+            @NewProductID,
+            @RallyID,
+            @Title,
+            @Description,
+            @Semester,
+            @MeetingDate,
+            @MeetingTypeID,
+            @MeetingCapacity,
+            @Price
+        );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+```
+### 5. Tworzenie kursów
+```sql
+CREATE PROCEDURE CreateCourse
+    @Title NVARCHAR(80),
+    @Description NTEXT,
+    @CourseTypeID INT,
+    @ParticipantsLimit INT = NULL,
+    @TeacherID INT = NULL,
+    @Price MONEY
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        INSERT INTO Products (TeacherID) VALUES (@TeacherID);
+        DECLARE @NewProductID INT;
+        SET @NewProductID = SCOPE_IDENTITY();
+
+        INSERT INTO Courses (
+            CourseID,
+            Title,
+            Description,
+            CourseTypeID,
+            ParticipantsLimit,
+            Price
+        )
+        VALUES (
+            @NewProductID,
+            @Title,
+            @Description,
+            @CourseTypeID,
+            @ParticipantsLimit,
+            @Price
+        );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+```
+### 6. Tworzenie modułów kursów
+```sql
+CREATE PROCEDURE CreateModule
+    @CourseID INT,
+    @MeetingTypeID INT,
+    @ModuleName NVARCHAR(80),
+    @Description NTEXT,
+    @MeetingDate DATETIME,
+    @MeetingPlace NTEXT = NULL
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        INSERT INTO Modules (
+            CourseID,
+            MeetingTypeID,
+            ModuleName,
+            Description,
+            MeetingDate,
+            MeetingPlace
+        )
+        VALUES (
+            @CourseID,
+            @MeetingTypeID,
+            @ModuleName,
+            @Description,
+            @MeetingDate,
+            @MeetingPlace
+        );
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+```
+### 7. Tworzenie webinaru
+```sql
+CREATE PROCEDURE CreateWebinar
+    @Title NVARCHAR(80),
+    @Description NTEXT,
+    @MeetingLink NTEXT = NULL,
+    @RecordLink NTEXT = NULL,
+    @MeetingDate DATETIME,
+    @RecordUploadDate DATETIME = NULL,
+    @Price MONEY
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        INSERT INTO Products DEFAULT VALUES;
+        DECLARE @NewProductID INT;
+        SET @NewProductID = SCOPE_IDENTITY();
+
+        INSERT INTO Webinars (
+            WebinarID,
+            Title,
+            Description,
+            MeetingLink,
+            RecordLink,
+            MeetingDate,
+            RecordUploadDate,
+            Price
+        )
+        VALUES (
+            @NewProductID,
+            @Title,
+            @Description,
+            @MeetingLink,
+            @RecordLink,
+            @MeetingDate,
+            @RecordUploadDate,
+            @Price
+        );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+```
+
+### 8. Dodawanie koordynatora
+``` sql
+CREATE PROCEDURE AddCoordinator
+(
+    @UserID INT
+)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM Users
+                   WHERE UserID = @UserID)
+        BEGIN
+            THROW 50001, N'Użytkownik o podanym ID nie istnieje.', 1;
+        END;
+
+    IF EXISTS (SELECT 1
+               FROM Coordinators
+               WHERE UserID = @UserID)
+        BEGIN
+            THROW 50002, N'Użytkownik o podanym ID już jest koordynatorem.', 1;
+        END;
+
+    INSERT INTO Coordinators (UserID)
+    VALUES (@UserID);
+END;
+```
+
+### 9. Dodawanie egzaminu do studium
+``` sql
+CREATE PROCEDURE AddExamToStudies
+(
+    @StudiesID INT,
+    @UserID INT,
+    @Grade INT
+)
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM Studies
+            WHERE StudiesID = @StudiesID
+        )
+            BEGIN
+                THROW 50001, N'Studia o podanym ID nie istnieją.', 1;
+            END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM Users
+            WHERE UserID = @UserID
+        )
+            BEGIN
+                THROW 50002, N'Użytkownik o podanym ID nie istnieje.', 1;
+            END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM Orders o
+                     JOIN OrderDetails od ON o.OrderID = od.OrderID
+            WHERE o.CustomerID = @UserID AND od.ProductID = @StudiesID
+        )
+            BEGIN
+                THROW 50003, N'Użytkownik nie zakupił podanych studiów.', 1;
+            END;
+
+        IF (@Grade < 0 OR @Grade > 100)
+            BEGIN
+                THROW 50004, N'Ocena musi być w zakresie od 0 do 100.', 1;
+            END;
+
+        INSERT INTO Exams (StudiesID, UserID, Grade)
+        VALUES (@StudiesID, @UserID, @Grade);
+
+        COMMIT TRANSACTION;
+        PRINT 'Egzamin został pomyślnie dodany.';
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+```
+
+### 10. Dodawanie dyrektora
+``` sql 
+CREATE PROCEDURE AddHeadmaster
+(
+    @UserID INT
+)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM Users
+                   WHERE UserID = @UserID)
+        BEGIN
+            THROW 50001, N'Użytkownik o podanym ID nie istnieje.', 1;
+        END;
+
+    IF EXISTS (SELECT 1
+               FROM Headmasters
+               WHERE UserID = @UserID)
+        BEGIN
+            THROW 50002, N'Użytkownik o podanym ID już jest dyrektorem.', 1;
+        END;
+
+    INSERT INTO Headmasters (UserID, IsRetired)
+    VALUES (@UserID, 0);
+END;
+```
+
+### 11. Dodawanie praktyk do studiów
+``` sql
+CREATE PROCEDURE AddApprenticeShipToStudies
+(
+    @StudiesID INT,
+    @Title NVARCHAR(80),
+    @Description NTEXT,
+    @CompanyID INT
+)
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM Studies
+            WHERE StudiesID = @StudiesID
+        )
+            BEGIN
+                THROW 50001, N'Studia o podanym ID nie istnieją.', 1;
+            END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM ApprenticeshipCompany
+            WHERE CompanyID = @CompanyID
+        )
+            BEGIN
+                THROW 50002, N'Firma o podanym ID nie istnieje.', 1;
+            END;
+
+        INSERT INTO Apprenticeships
+        (
+            StudiesID,
+            Title,
+            Description,
+            CompanyID
+        )
+        VALUES
+            (
+                @StudiesID,
+                @Title,
+                @Description,
+                @CompanyID
+            );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+```
+
+### 12. Dodawanie nauczyciela
+``` sql
+CREATE PROCEDURE AddTeacher
+(
+    @UserID INT
+)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM Users
+                   WHERE UserID = @UserID)
+        BEGIN
+            THROW 50001, N'Użytkownik o podanym ID nie istnieje.', 1;
+        END;
+
+    IF EXISTS (SELECT 1
+               FROM Teachers
+               WHERE UserID = @UserID)
+        BEGIN
+            THROW 50002, N'Użytkownik o podanym ID już jest nauczycielem.', 1;
+        END;
+
+    INSERT INTO Teachers (UserID)
+    VALUES (@UserID);
+END;
+```
+
+### 13. Dodawanie tłumacza
+``` sql
+CREATE PROCEDURE AddTranslator
+(
+    @UserID INT
+)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM Users
+                   WHERE UserID = @UserID)
+        BEGIN
+            THROW 50001, N'Użytkownik o podanym ID nie istnieje.', 1;
+        END;
+
+    IF EXISTS (SELECT 1
+               FROM Translators
+               WHERE UserID = @UserID)
+        BEGIN
+            THROW 50002, N'Użytkownik o podanym ID już jest tłumaczem.', 1;
+        END;
+
+    INSERT INTO Translators (UserID)
+    VALUES (@UserID);
+END;
+```
+
+### 14. Dodawanie tłumacza do produktu
+``` sql
+CREATE PROCEDURE AddTranslatorToProduct
+(
+    @TranslatorID INT,
+    @ProductID INT,
+    @TranslatedLanguage NVARCHAR(24)
+)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM Translators
+                   WHERE UserID = @TranslatorID)
+        BEGIN
+            THROW 50001, N'Tłumacz o podanym ID nie istnieje.', 1;
+        END;
+
+    IF NOT EXISTS (SELECT 1
+                   FROM Products
+                   WHERE ProductID = @ProductID)
+        BEGIN
+            THROW 50002, N'Produkt o podanym ID nie istnieje.', 1;
+        END;
+
+    IF EXISTS (SELECT 1
+               FROM TranslatorsProducts
+               WHERE TranslatorID = @TranslatorID
+                 AND ProductID = @ProductID
+                 AND TranslatedLanguage = @TranslatedLanguage)
+        BEGIN
+            THROW 50003, N'Ten tłumacz już jest przypisany do tego produktu dla wskazanego języka.', 1;
+        END;
+
+    INSERT INTO TranslatorsProducts (TranslatorID, ProductID, TranslatedLanguage)
+    VALUES (@TranslatorID, @ProductID, @TranslatedLanguage);
+END;
+```
+
+### 15. Dodawanie nieobecności użytkownika do praktyk
+``` sql
+CREATE PROCEDURE AddUserAbsenceToApprenticeship
+(
+    @UserID INT,
+    @ApprenticeshipID INT,
+    @AbsenceDate DATETIME
+)
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM Users
+            WHERE UserID = @UserID
+        )
+            BEGIN
+                THROW 50001, N'Użytkownik o podanym ID nie istnieje.', 1;
+            END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM Apprenticeships
+            WHERE ApprenticeshipID = @ApprenticeshipID
+        )
+            BEGIN
+                THROW 50002, N'Staż o podanym ID nie istnieje.', 1;
+            END;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM ApprenticeshipUsers
+            WHERE UserID = @UserID AND ApprenticeshipID = @ApprenticeshipID
+        )
+            BEGIN
+                THROW 50003, N'Użytkownik nie jest przypisany do tego stażu.', 1;
+            END;
+
+        INSERT INTO ApprenticeshipAbsences (ApprenticeshipID, UserID, AbsenceDate)
+        VALUES (@ApprenticeshipID, @UserID, @AbsenceDate);
+
+        COMMIT TRANSACTION;
+        PRINT 'Nieobecność użytkownika została pomyślnie dodana.';
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+```
+
+### 16. Dodawanie nieobecności do webinaru
+``` sql
+ CREATE PROCEDURE InsertWebinarAbsence
+    @UserID INT,
+    @WebinarID INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        INSERT INTO WebinarAbsences (UserID, WebinarID)
+        VALUES (@UserID, @WebinarID);
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+```
+
+### 17. Odejście dyrektora na emeryture
+``` sql 
+CREATE PROCEDURE RetireHeadmaster
+(
+    @UserID INT
+)
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1
+                   FROM Headmasters
+                   WHERE UserID = @UserID)
+        BEGIN
+            THROW 50003, N'Użytkownik o podanym ID nie jest obecnie dyrektorem.', 1;
+        END;
+
+    UPDATE Headmasters
+    SET IsRetired = 1
+    WHERE UserID = @UserID;
+END;
+```
+### 18. Dodawanie nieobecności w spotkaniach studyjnych:
+``` sql
+CREATE PROCEDURE InsertStudiesMeetingAbsence
+    @UserID INT,
+    @ProductID INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        INSERT INTO StudiesMeetingsAbsences (UserID, ProductID)
+        VALUES (@UserID, @ProductID);
+
+        COMMIT TRANSACTION;
+
+        PRINT N'Rekord został pomyślnie dodany do tabeli StudiesMeetingsAbsences.';
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+```
+### 19. Wstawianie nieobecności do webinaru
+```sql
+CREATE PROCEDURE InsertWebinarAbsence
+    @UserID INT,
+    @WebinarID INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        INSERT INTO WebinarAbsences (UserID, WebinarID)
+        VALUES (@UserID, @WebinarID);
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+```
+
+# Funkcje
+### 1. Data rozpoczęcia produktu
+``` sql
+CREATE FUNCTION GetProductStartDate(
+    @ProductID INT
+)
+    RETURNS DATETIME
+AS
+BEGIN
+    DECLARE @Date DATETIME;
+    BEGIN
+        SELECT @Date =
+               CASE
+                   WHEN EXISTS (SELECT 1 FROM Courses c WHERE c.CourseID = @ProductID) THEN
+                       (SELECT TOP 1 MeetingDate
+                        FROM Courses
+                                 JOIN Modules ON Courses.CourseID = Modules.CourseID
+                        WHERE Courses.CourseID = @ProductID
+                        ORDER BY MeetingDate)
+                   WHEN EXISTS (SELECT 1 FROM Studies s WHERE s.StudiesID = @ProductID) THEN
+                       (SELECT StartDate
+                        FROM Studies
+                        WHERE StudiesID = @ProductID)
+                   WHEN EXISTS (SELECT 1 FROM Webinars w WHERE w.WebinarID = @ProductID) THEN
+                       (SELECT MeetingDate
+                        FROM Webinars
+                        WHERE WebinarID = @ProductID)
+                   WHEN EXISTS (SELECT 1 FROM StudiesMeetings sm WHERE sm.ProductID = @ProductID) THEN
+                       (SELECT MeetingDate
+                        FROM StudiesMeetings
+                        WHERE ProductID = @ProductID)
+                   WHEN EXISTS (SELECT 1 FROM StudiesRallies sr WHERE sr.ProductID = @ProductID) THEN
+                       (SELECT TOP 1 MeetingDate
+                        FROM StudiesRallies sr
+                                 JOIN StudiesMeetings sm ON sr.ProductID = sm.RallyID
+                        WHERE sr.ProductID = @ProductID
+                        ORDER BY MeetingDate)
+                   END;
+    END;
+
+    RETURN @Date;
+END
+```
+### 2. Cena produktu
+``` sql
+CREATE FUNCTION GetProductPrice
+(
+    @ProductID INT
+)
+    RETURNS MONEY
+AS
+BEGIN
+    DECLARE @Price MONEY;
+        BEGIN
+            SELECT @Price =
+                   CASE
+                       WHEN EXISTS (SELECT 1 FROM Courses c WHERE c.CourseID = @ProductID) THEN
+                           (SELECT Price FROM Courses WHERE CourseID = @ProductID)
+                       WHEN EXISTS (SELECT 1 FROM Studies s WHERE s.StudiesID = @ProductID) THEN
+                           (SELECT Price FROM Studies WHERE StudiesID = @ProductID)
+                       WHEN EXISTS (SELECT 1 FROM Webinars w WHERE w.WebinarID = @ProductID) THEN
+                           (SELECT Price FROM Webinars WHERE WebinarID = @ProductID)
+                       WHEN EXISTS (SELECT 1 FROM StudiesMeetings sm WHERE sm.ProductID = @ProductID) THEN
+                           (SELECT OutsiderPrice FROM StudiesMeetings WHERE ProductID = @ProductID)
+                       WHEN EXISTS (SELECT 1 FROM StudiesRallies sr WHERE sr.ProductID = @ProductID) THEN
+                           (SELECT Price FROM StudiesRallies WHERE ProductID = @ProductID)
+                       END;
+        END;
+
+    RETURN @Price;
+END
+```
+
+
+# Indeksy
+Ten indeks przydaje się przy logowaniu, wyszukiwaniu użytkownika bez ID oraz przywracaniu hasła. Zecydowaliśmy się na stworzenie go, ze względu na o wiele częstsze logowania niż rejestracje.
+```sql
+CREATE INDEX USER_EMAIL_INDEX ON Users (Email);
+```
+Pozostałe indeksy to klucze obce w tabelach często łączonych do których dane nie są zbyt często wstawiane.
+```sql
+CREATE INDEX MODULES_COURSES_INDEX ON Modules (CourseID);
+CREATE INDEX RALLIES_STUDIES_INDEX ON StudiesRallies (StudiesID);
+CREATE INDEX MEETINGS_RALLIES_INDEX ON StudiesMeetings (RallyID);
+```
+
+# Uprawnienia
+Na początek:
+```sql
+USE u_szepiela;
+```
+#### 1. Administrator
+Administrator posiada wszystkie uprawnienia, gdyż potrzebuje ich do prac serwisowych, dodawania nowych funkcjonalności i naprawiania potencjalnych błędów.
+```sql
+CREATE ROLE ADMIN;
+ALTER ROLE db_owner ADD MEMBER [ADMIN];
+```
+
+#### 2. Księgowość
+Uprawnienia do operowania danymi w bazie bez możliwości modyfikacji samej struktury bazy.
+```sql
+CREATE ROLE Accountant;
+GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::dbo TO Accountant;
+```
 
 # Kod DDL
 
 ```sql
--- Table: ApprenticeshipAbsences
 CREATE TABLE ApprenticeshipAbsences (
-    ApprenticeshipAbsenceID int  NOT NULL,
+    ApprenticeshipAbsenceID int  NOT NULL IDENTITY(1, 1),
     ApprenticeshipID int  NOT NULL,
     UserID int  NOT NULL,
     AbsenceDate datetime  NOT NULL,
     CONSTRAINT ApprenticeshipAbsences_pk PRIMARY KEY  (ApprenticeshipAbsenceID)
 );
 
--- Table: ApprenticeshipCompany
 CREATE TABLE ApprenticeshipCompany (
-    CompanyID int  NOT NULL,
+    CompanyID int  NOT NULL IDENTITY(1, 1),
     CompanyName nvarchar(80)  NOT NULL,
     CONSTRAINT ApprenticeshipCompany_pk PRIMARY KEY  (CompanyID)
 );
 
--- Table: Apprenticeships
-CREATE TABLE Apprenticeships (
+CREATE TABLE ApprenticeshipUsers (
+    UserID int  NOT NULL,
     ApprenticeshipID int  NOT NULL,
+    CONSTRAINT ApprenticeshipUsers_pk PRIMARY KEY  (ApprenticeshipID,UserID)
+);
+
+CREATE TABLE Apprenticeships (
+    ApprenticeshipID int  NOT NULL IDENTITY(1, 1),
     StudiesID int  NOT NULL,
     Title nvarchar(80)  NOT NULL,
     Description ntext  NOT NULL,
     CompanyID int  NOT NULL,
+    StartDate datetime  NOT NULL,
     CONSTRAINT Apprenticeships_pk PRIMARY KEY  (ApprenticeshipID)
 );
 
--- Table: Coordinators
 CREATE TABLE Coordinators (
     UserID int  NOT NULL,
     CONSTRAINT Coordinators_pk PRIMARY KEY  (UserID)
 );
 
--- Table: Courses
 CREATE TABLE Courses (
     CourseID int  NOT NULL,
     Title nvarchar(80)  NOT NULL,
@@ -762,14 +1539,12 @@ CREATE TABLE Courses (
     CONSTRAINT Courses_pk PRIMARY KEY  (CourseID)
 );
 
--- Table: CoursesMeetingType
 CREATE TABLE CoursesMeetingType (
-    CourseTypeID int  NOT NULL,
+    CourseTypeID int  NOT NULL IDENTITY(1, 1),
     CourseType nvarchar(24)  NOT NULL,
     CONSTRAINT CoursesMeetingType_pk PRIMARY KEY  (CourseTypeID)
 );
 
--- Table: Exams
 CREATE TABLE Exams (
     StudiesID int  NOT NULL,
     UserID int  NOT NULL,
@@ -778,48 +1553,37 @@ CREATE TABLE Exams (
     CONSTRAINT Exams_pk PRIMARY KEY  (StudiesID,UserID)
 );
 
--- Table: Headmasters
 CREATE TABLE Headmasters (
     UserID int  NOT NULL,
     IsRetired bit  NOT NULL,
     CONSTRAINT Headmasters_pk PRIMARY KEY  (UserID)
 );
 
--- Table: MeetingRooms
-CREATE TABLE MeetingRooms (
-    ModuleID int  NOT NULL,
-    MeetingPlace ntext  NOT NULL,
-    CONSTRAINT MeetingRooms_pk PRIMARY KEY  (ModuleID)
-);
-
--- Table: ModuleAbsences
 CREATE TABLE ModuleAbsences (
     UserID int  NOT NULL,
     ModuleID int  NOT NULL,
-    AbsenceDate datetime  NOT NULL,
     CONSTRAINT ModuleAbsences_pk PRIMARY KEY  (UserID,ModuleID)
 );
 
--- Table: Modules
 CREATE TABLE Modules (
-    ModuleID int  NOT NULL,
+    ModuleID int  NOT NULL IDENTITY(1, 1),
     CourseID int  NOT NULL,
     MeetingTypeID int  NOT NULL,
     ModuleName nvarchar(80)  NOT NULL,
     Description ntext  NOT NULL,
+    MeetingDate datetime  NOT NULL,
+    MeetingPlace nvarchar(24)  NULL,
     CONSTRAINT Modules_pk PRIMARY KEY  (ModuleID)
 );
 
--- Table: ModulesMettingType
 CREATE TABLE ModulesMettingType (
-    MeetingTypeID int  NOT NULL,
+    MeetingTypeID int  NOT NULL IDENTITY(1, 1),
     MeetingType nvarchar(24)  NOT NULL,
     CONSTRAINT ModulesMettingType_pk PRIMARY KEY  (MeetingTypeID)
 );
 
--- Table: OrderDetails
 CREATE TABLE OrderDetails (
-    OrderDetailID int  NOT NULL,
+    OrderDetailID int  NOT NULL IDENTITY(1, 1),
     OrderID int  NOT NULL,
     ProductID int  NOT NULL,
     Price money  NOT NULL,
@@ -827,17 +1591,15 @@ CREATE TABLE OrderDetails (
     CONSTRAINT OrderDetails_pk PRIMARY KEY  (OrderDetailID)
 );
 
--- Table: Orders
 CREATE TABLE Orders (
-    OrderID int  NOT NULL,
+    OrderID int  NOT NULL IDENTITY(1, 1),
     CustomerID int  NOT NULL,
     OrderDate datetime  NOT NULL,
     CONSTRAINT Orders_pk PRIMARY KEY  (OrderID)
 );
 
--- Table: Payments
 CREATE TABLE Payments (
-    PaymentID int  NOT NULL,
+    PaymentID int  NOT NULL IDENTITY(1, 1),
     OrderDetailID int  NOT NULL,
     Amount money  NOT NULL,
     PaymentDate datetime  NOT NULL,
@@ -845,14 +1607,12 @@ CREATE TABLE Payments (
     CONSTRAINT Payments_pk PRIMARY KEY  (PaymentID)
 );
 
--- Table: Products
 CREATE TABLE Products (
-    ProductID int  NOT NULL,
+    ProductID int  NOT NULL IDENTITY(1, 1),
     TeacherID int  NULL,
     CONSTRAINT Products_pk PRIMARY KEY  (ProductID)
 );
 
--- Table: Studies
 CREATE TABLE Studies (
     StudiesID int  NOT NULL,
     Title nvarchar(80)  NOT NULL,
@@ -865,22 +1625,12 @@ CREATE TABLE Studies (
     CONSTRAINT Studies_pk PRIMARY KEY  (StudiesID)
 );
 
--- Table: StudiesAbsences
-CREATE TABLE StudiesAbsences (
-    UserID int  NOT NULL,
-    ProductID int  NOT NULL,
-    AbsenceDate datetime  NOT NULL,
-    CONSTRAINT StudiesAbsences_pk PRIMARY KEY  (UserID,ProductID)
-);
-
--- Table: StudiesMeetingType
 CREATE TABLE StudiesMeetingType (
-    MeetingTypeID int  NOT NULL,
+    MeetingTypeID int  NOT NULL IDENTITY(1, 1),
     MeetingType nvarchar(24)  NOT NULL,
     CONSTRAINT StudiesMeetingType_pk PRIMARY KEY  (MeetingTypeID)
 );
 
--- Table: StudiesMeetings
 CREATE TABLE StudiesMeetings (
     ProductID int  NOT NULL,
     RallyID int  NOT NULL,
@@ -890,14 +1640,18 @@ CREATE TABLE StudiesMeetings (
     MeetingDate datetime  NOT NULL,
     MeetingTypeID int  NOT NULL,
     MeetingCapacity int  NOT NULL,
-    StudiesParticipantPrice money  NOT NULL,
-    Price money  NOT NULL,
-    CONSTRAINT Price_is_not_greater_than_0 CHECK (OutsiderPrice > 0),
+    OutsiderPrice money  NOT NULL,
+    CONSTRAINT Price_is_not_greater_than_0 CHECK (Price > 0),
     CONSTRAINT MeetingCapacity_is_not_greater_than_0 CHECK (MeetingCapacity > 0),
     CONSTRAINT StudiesMeetings_pk PRIMARY KEY  (ProductID)
 );
 
--- Table: StudiesRallies
+CREATE TABLE StudiesMeetingsAbsences (
+    UserID int  NOT NULL,
+    ProductID int  NOT NULL,
+    CONSTRAINT StudiesMeetingsAbsences_pk PRIMARY KEY  (UserID,ProductID)
+);
+
 CREATE TABLE StudiesRallies (
     ProductID int  NOT NULL,
     StudiesID int  NOT NULL,
@@ -905,20 +1659,16 @@ CREATE TABLE StudiesRallies (
     CONSTRAINT ProductID PRIMARY KEY  (ProductID)
 );
 
--- Table: Teachers
 CREATE TABLE Teachers (
     UserID int  NOT NULL,
-    Products_ProductID int  NOT NULL,
     CONSTRAINT Teachers_pk PRIMARY KEY  (UserID)
 );
 
--- Table: Translators
 CREATE TABLE Translators (
     UserID int  NOT NULL,
     CONSTRAINT Translators_pk PRIMARY KEY  (UserID)
 );
 
--- Table: TranslatorsProducts
 CREATE TABLE TranslatorsProducts (
     TranslatorID int  NOT NULL,
     ProductID int  NOT NULL,
@@ -926,7 +1676,6 @@ CREATE TABLE TranslatorsProducts (
     CONSTRAINT TranslatorsProducts_pk PRIMARY KEY  (TranslatorID,ProductID)
 );
 
--- Table: Users
 CREATE TABLE Users (
     UserID int  NOT NULL IDENTITY(1, 1),
     FirstName nvarchar(40)  NOT NULL,
@@ -943,15 +1692,12 @@ CREATE TABLE Users (
     CONSTRAINT Users_pk PRIMARY KEY  (UserID)
 );
 
--- Table: WebinarAbsences
 CREATE TABLE WebinarAbsences (
     UserID int  NOT NULL,
     WebinarID int  NOT NULL,
-    AbsenceDate datetime  NOT NULL,
     CONSTRAINT WebinarAbsences_pk PRIMARY KEY  (UserID,WebinarID)
 );
 
--- Table: Webinars
 CREATE TABLE Webinars (
     WebinarID int  NOT NULL,
     Title nvarchar(80)  NOT NULL,
@@ -965,21 +1711,30 @@ CREATE TABLE Webinars (
     CONSTRAINT Webinars_pk PRIMARY KEY  (WebinarID)
 );
 
--- foreign keys
+-- Reference: ApprenticeshipAbsences_ApprenticeshipUsers (table: ApprenticeshipAbsences)
+ALTER TABLE ApprenticeshipAbsences ADD CONSTRAINT ApprenticeshipAbsences_ApprenticeshipUsers
+    FOREIGN KEY (ApprenticeshipID,UserID)
+    REFERENCES ApprenticeshipUsers (ApprenticeshipID,UserID);
+
 -- Reference: ApprenticeshipCompanyID_Apprenticeships (table: Apprenticeships)
 ALTER TABLE Apprenticeships ADD CONSTRAINT ApprenticeshipCompanyID_Apprenticeships
     FOREIGN KEY (CompanyID)
     REFERENCES ApprenticeshipCompany (CompanyID);
 
+-- Reference: ApprenticeshipUsers_Apprenticeships (table: ApprenticeshipUsers)
+ALTER TABLE ApprenticeshipUsers ADD CONSTRAINT ApprenticeshipUsers_Apprenticeships
+    FOREIGN KEY (ApprenticeshipID)
+    REFERENCES Apprenticeships (ApprenticeshipID);
+
+-- Reference: ApprenticeshipUsers_Users (table: ApprenticeshipUsers)
+ALTER TABLE ApprenticeshipUsers ADD CONSTRAINT ApprenticeshipUsers_Users
+    FOREIGN KEY (UserID)
+    REFERENCES Users (UserID);
+
 -- Reference: ApprenticeshipsAttendance_Apprenticeships (table: ApprenticeshipAbsences)
 ALTER TABLE ApprenticeshipAbsences ADD CONSTRAINT ApprenticeshipsAttendance_Apprenticeships
     FOREIGN KEY (ApprenticeshipID)
     REFERENCES Apprenticeships (ApprenticeshipID);
-
--- Reference: ApprenticeshipsAttendance_Users (table: ApprenticeshipAbsences)
-ALTER TABLE ApprenticeshipAbsences ADD CONSTRAINT ApprenticeshipsAttendance_Users
-    FOREIGN KEY (UserID)
-    REFERENCES Users (UserID);
 
 -- Reference: CoursesMeetingType_Courses (table: Courses)
 ALTER TABLE Courses ADD CONSTRAINT CoursesMeetingType_Courses
@@ -1000,11 +1755,6 @@ ALTER TABLE Exams ADD CONSTRAINT Exams_Studies
 ALTER TABLE Exams ADD CONSTRAINT Exams_Users
     FOREIGN KEY (UserID)
     REFERENCES Users (UserID);
-
--- Reference: MeetingRooms_Modules (table: MeetingRooms)
-ALTER TABLE MeetingRooms ADD CONSTRAINT MeetingRooms_Modules
-    FOREIGN KEY (ModuleID)
-    REFERENCES Modules (ModuleID);
 
 -- Reference: ModuleAttendance_Modules (table: ModuleAbsences)
 ALTER TABLE ModuleAbsences ADD CONSTRAINT ModuleAttendance_Modules
@@ -1071,13 +1821,13 @@ ALTER TABLE StudiesRallies ADD CONSTRAINT Studies_StudiesRallies
     FOREIGN KEY (StudiesID)
     REFERENCES Studies (StudiesID);
 
--- Reference: StudyAttendance_StudyMeetings (table: StudiesAbsences)
-ALTER TABLE StudiesAbsences ADD CONSTRAINT StudyAttendance_StudyMeetings
+-- Reference: StudyAttendance_StudyMeetings (table: StudiesMeetingsAbsences)
+ALTER TABLE StudiesMeetingsAbsences ADD CONSTRAINT StudyAttendance_StudyMeetings
     FOREIGN KEY (ProductID)
     REFERENCES StudiesMeetings (ProductID);
 
--- Reference: StudyAttendance_Users (table: StudiesAbsences)
-ALTER TABLE StudiesAbsences ADD CONSTRAINT StudyAttendance_Users
+-- Reference: StudyAttendance_Users (table: StudiesMeetingsAbsences)
+ALTER TABLE StudiesMeetingsAbsences ADD CONSTRAINT StudyAttendance_Users
     FOREIGN KEY (UserID)
     REFERENCES Users (UserID);
 
@@ -1140,5 +1890,4 @@ ALTER TABLE WebinarAbsences ADD CONSTRAINT WebinarAttendance_Webinars
 ALTER TABLE Webinars ADD CONSTRAINT Webinars_Products
     FOREIGN KEY (WebinarID)
     REFERENCES Products (ProductID);
-
 ```
