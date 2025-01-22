@@ -516,7 +516,8 @@ BEGIN
             THROW 50001, N'Brak dostępnych wolnych miejsc na to studium!', 1;
         END;
 
-    -- Sprawdzenie, czy użytkownik próbuje dodać produkt związany z `StudiesRallies` bez posiadania 'Studies'
+    -- Sprawdzenie, czy użytkownik próbuje dodać produkt 
+    -- związany z `StudiesRallies` bez posiadania 'Studies'
     IF EXISTS (SELECT 1
                FROM INSERTED i
                         JOIN Orders o ON i.OrderID = o.OrderID
@@ -527,7 +528,7 @@ BEGIN
                                  WHERE o2.CustomerID = o.CustomerID
                                    AND od2.ProductID = sr.StudiesID))
         BEGIN
-            THROW 50002, N'Nie możesz kupić tego StudiesRallies bez posiadania odpowiedniego Studies.', 1;
+            THROW 50002, N'Nie możesz kupić StudiesRallies bez posiadania Studies.', 1;
         END;
 
     -- Sprawdzenie, czy użytkownik próbuje kupić `StudiesMeetings`, ale już kupił odpowiadające `Studies`
@@ -660,7 +661,7 @@ BEGIN
         )
     )
         BEGIN
-            THROW 50000, N'Użytkownik nie może być dodany, ponieważ nie ma zamówienia na odpowiedni StudiesMeeting lub Rally.', 1;
+            THROW 50000, N'Użytkownik nie ma zamówienia na odpowiedni StudiesMeeting lub Rally.', 1;
         END;
 
     INSERT INTO StudiesMeetingsAbsences (UserID, ProductID)
@@ -1397,31 +1398,41 @@ BEGIN
     BEGIN
         SELECT @Date =
                CASE
-                   WHEN EXISTS (SELECT 1 FROM Courses c WHERE c.CourseID = @ProductID) THEN
+                   WHEN 
+                   EXISTS (SELECT 1 FROM Courses c WHERE c.CourseID = @ProductID) 
+                   THEN
                        (SELECT TOP 1 MeetingDate
                         FROM Courses
                                  JOIN Modules ON Courses.CourseID = Modules.CourseID
                         WHERE Courses.CourseID = @ProductID
                         ORDER BY MeetingDate)
-                   WHEN EXISTS (SELECT 1 FROM Studies s WHERE s.StudiesID = @ProductID) THEN
+                    WHEN 
+                    EXISTS (SELECT 1 FROM Studies s WHERE s.StudiesID = @ProductID) 
+                    THEN
                        (SELECT StartDate
                         FROM Studies
                         WHERE StudiesID = @ProductID)
-                   WHEN EXISTS (SELECT 1 FROM Webinars w WHERE w.WebinarID = @ProductID) THEN
+                    WHEN 
+                    EXISTS (SELECT 1 FROM Webinars w WHERE w.WebinarID = @ProductID) 
+                    THEN
                        (SELECT MeetingDate
                         FROM Webinars
                         WHERE WebinarID = @ProductID)
-                   WHEN EXISTS (SELECT 1 FROM StudiesMeetings sm WHERE sm.ProductID = @ProductID) THEN
+                    WHEN 
+                    EXISTS (SELECT 1 FROM StudiesMeetings sm WHERE sm.ProductID = @ProductID) 
+                    THEN
                        (SELECT MeetingDate
                         FROM StudiesMeetings
                         WHERE ProductID = @ProductID)
-                   WHEN EXISTS (SELECT 1 FROM StudiesRallies sr WHERE sr.ProductID = @ProductID) THEN
+                    WHEN 
+                    EXISTS (SELECT 1 FROM StudiesRallies sr WHERE sr.ProductID = @ProductID) 
+                    THEN
                        (SELECT TOP 1 MeetingDate
                         FROM StudiesRallies sr
                                  JOIN StudiesMeetings sm ON sr.ProductID = sm.RallyID
                         WHERE sr.ProductID = @ProductID
                         ORDER BY MeetingDate)
-                   END;
+                    END;
     END;
 
     RETURN @Date;
@@ -1440,17 +1451,32 @@ BEGIN
         BEGIN
             SELECT @Price =
                    CASE
-                       WHEN EXISTS (SELECT 1 FROM Courses c WHERE c.CourseID = @ProductID) THEN
-                           (SELECT Price FROM Courses WHERE CourseID = @ProductID)
-                       WHEN EXISTS (SELECT 1 FROM Studies s WHERE s.StudiesID = @ProductID) THEN
-                           (SELECT Price FROM Studies WHERE StudiesID = @ProductID)
-                       WHEN EXISTS (SELECT 1 FROM Webinars w WHERE w.WebinarID = @ProductID) THEN
-                           (SELECT Price FROM Webinars WHERE WebinarID = @ProductID)
-                       WHEN EXISTS (SELECT 1 FROM StudiesMeetings sm WHERE sm.ProductID = @ProductID) THEN
-                           (SELECT OutsiderPrice FROM StudiesMeetings WHERE ProductID = @ProductID)
-                       WHEN EXISTS (SELECT 1 FROM StudiesRallies sr WHERE sr.ProductID = @ProductID) THEN
-                           (SELECT Price FROM StudiesRallies WHERE ProductID = @ProductID)
-                       END;
+                        WHEN 
+                        EXISTS (SELECT 1 FROM Courses c WHERE c.CourseID = @ProductID) 
+                        THEN
+                        (SELECT Price FROM Courses WHERE CourseID = @ProductID)
+
+                        WHEN 
+                        EXISTS (SELECT 1 FROM Studies s WHERE s.StudiesID = @ProductID) 
+                        THEN
+                        (SELECT Price FROM Studies WHERE StudiesID = @ProductID)
+
+                        WHEN 
+                        EXISTS (SELECT 1 FROM Webinars w WHERE w.WebinarID = @ProductID) 
+                        THEN
+                        (SELECT Price FROM Webinars WHERE WebinarID = @ProductID)
+
+                        WHEN 
+                        EXISTS (SELECT 1 FROM StudiesMeetings sm WHERE sm.ProductID = @ProductID) 
+                        THEN
+                        (SELECT OutsiderPrice FROM StudiesMeetings WHERE ProductID = @ProductID)
+
+                        WHEN 
+                        EXISTS (SELECT 1 FROM StudiesRallies sr WHERE sr.ProductID = @ProductID) 
+                        THEN
+                        (SELECT Price FROM StudiesRallies WHERE ProductID = @ProductID)
+
+                        END;
         END;
 
     RETURN @Price;
