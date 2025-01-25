@@ -206,7 +206,7 @@ Amount > 0
 
 # Widoki
 
-#### Łączny przychód z każdego miesiąca każdego roku
+#### Łączny przychód z każdego miesiąca każdego roku (Radosław Szepielak)
 
 ```sql
 CREATE VIEW [IncomeMonth]
@@ -226,7 +226,7 @@ FROM YearMonthDates ymd
 GROUP BY ROLLUP(ymd.Rok, ymd.Miesiąc)
 ```
 
-#### Zestawienie przychodów dla każdego webinaru/kursu/studium
+#### Zestawienie przychodów dla każdego webinaru/kursu/studium (Radosław Szepielak)
 
 ```sql
 CREATE VIEW [Income]
@@ -587,7 +587,8 @@ BEGIN
 END;
 ```
 ### 2. Sprawdza dodawanie nieobecności dla osoby, tylko która ma zakupiony Webinar oraz jest w pełni zapłacony.
-```sql
+### (Radosław Szepielak)
+```sql 
 CREATE TRIGGER CheckWebinarConditions
     ON WebinarAbsences
     INSTEAD OF INSERT
@@ -936,7 +937,7 @@ BEGIN
     END CATCH
 END
 ```
-### 7. Tworzenie webinaru
+### 7. Tworzenie webinaru (Radosław Szepielak)
 ```sql
 CREATE PROCEDURE CreateWebinar
     @Title NVARCHAR(80),
@@ -1299,7 +1300,7 @@ BEGIN
 END;
 ```
 
-### 16. Dodawanie nieobecności do webinaru
+### 16. Dodawanie nieobecności do webinaru (Radosław Szepielak)
 ``` sql
  CREATE PROCEDURE InsertWebinarAbsence
     @UserID INT,
@@ -1364,7 +1365,7 @@ BEGIN
     END CATCH
 END;
 ```
-### 19. Wstawianie nieobecności do webinaru
+### 19. Wstawianie nieobecności do webinaru (Radosław Szepielak)
 ```sql
 CREATE PROCEDURE InsertWebinarAbsence
     @UserID INT,
