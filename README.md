@@ -497,8 +497,8 @@ GROUP BY
     END;
 ```
 
-# Triggery
-### 1. Trigger zapewniający spójność OrderDetails
+# Triggery  
+### 1. Trigger zapewniający spójność OrderDetails (Paweł Gadomski)
 ``` sql
 CREATE TRIGGER UnifiedTriggerOrderDetails
     ON OrderDetails
@@ -636,7 +636,7 @@ BEGIN
 END;
 ```
 
-### 3. Sprawdza czy osoba której dodajemy nieobecność do spotkania studyjnego jest powiązana z tym spotkaniem
+### 3. Sprawdza czy osoba której dodajemy nieobecność do spotkania studyjnego jest powiązana z tym spotkaniem (Paweł Gadomski)
 ``` sql
 CREATE TRIGGER ValidateUserForAbsence
     ON StudiesMeetingsAbsences
