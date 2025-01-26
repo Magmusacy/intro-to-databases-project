@@ -297,7 +297,7 @@ GROUP BY TotalIncomeRaport.WebCourStudID,
     TotalIncomeRaport.Type
 ```
 
-#### Lista osób które mają niezapłacone zamówienia
+#### Lista osób które mają niezapłacone zamówienia (Paweł Gadomski)
 
 **(nic nie wpłaciły lub coś wpłaciły ale nie całość)** 
 
@@ -323,7 +323,7 @@ GROUP BY u.UserID, u.FirstName, u.LastName, u.Email, o.OrderID, o.OrderDate
 HAVING (SUM(OD.Price) - ISNULL(SUM(p.Amount), 0)) > 0;
 ```
 
-#### Ogólny raport dotyczący liczby zapisanych osób na przyszłe wydarzenia (z informacją, czy wydarzenie jest stacjonarnie, czy zdalnie).
+#### Ogólny raport dotyczący liczby zapisanych osób na przyszłe wydarzenia (z informacją, czy wydarzenie jest stacjonarnie, czy zdalnie). (Paweł Gadomski)
 
 ```sql
 CREATE VIEW FutureMeetings AS
@@ -356,7 +356,7 @@ GROUP BY
 
 ```
 
-#### Ogólny raport dotyczący frekwencji na zakończonych już wydarzeniach (po jednym widoku dla StudiesMeetings/Webinars/Modules).
+#### Ogólny raport dotyczący frekwencji na zakończonych już wydarzeniach (po jednym widoku dla StudiesMeetings/Webinars/Modules). (Paweł Gadomski)
 
 ```sql
 --- StudiesMeetings
@@ -673,7 +673,7 @@ END;
 
 
 # Procedury
-### 1. Tworzenie nowego zamówienia
+### 1. Tworzenie nowego zamówienia 
 W naszej implementacji zakładamy, że koszyk jest tworzony po stronie front-endu.
 
 Cena jest znajdywana przy użyciu funkcji GetProductPrice(ProductID), której implementacja znajduje się w sekcji z funkcjami.
@@ -722,7 +722,7 @@ EXEC CreateNewOrder
     @Products = '[{"ProductID": 1}, {"ProductID": 2}]';
 ```
 
-### 2. Tworzenie studiów
+### 2. Tworzenie studiów (Paweł Gadomski)
 ```sql
 CREATE PROCEDURE AddStudy
     @TeacherID INT,
@@ -986,7 +986,7 @@ BEGIN
 END
 ```
 
-### 8. Dodawanie koordynatora
+### 8. Dodawanie koordynatora (Paweł Gadomski)
 ``` sql
 CREATE PROCEDURE AddCoordinator
 (
@@ -1013,7 +1013,7 @@ BEGIN
 END;
 ```
 
-### 9. Dodawanie egzaminu do studium
+### 9. Dodawanie egzaminu do studium (Paweł Gadomski)
 ``` sql
 CREATE PROCEDURE AddExamToStudies
 (
@@ -1072,7 +1072,7 @@ BEGIN
 END;
 ```
 
-### 10. Dodawanie dyrektora
+### 10. Dodawanie dyrektora (Paweł Gadomski)
 ``` sql 
 CREATE PROCEDURE AddHeadmaster
 (
@@ -1099,7 +1099,7 @@ BEGIN
 END;
 ```
 
-### 11. Dodawanie praktyk do studiów
+### 11. Dodawanie praktyk do studiów (Paweł Gadomski)
 ``` sql
 CREATE PROCEDURE AddApprenticeShipToStudies
 (
@@ -1155,7 +1155,7 @@ BEGIN
 END;
 ```
 
-### 12. Dodawanie nauczyciela
+### 12. Dodawanie nauczyciela (Paweł Gadomski)
 ``` sql
 CREATE PROCEDURE AddTeacher
 (
@@ -1182,7 +1182,7 @@ BEGIN
 END;
 ```
 
-### 13. Dodawanie tłumacza
+### 13. Dodawanie tłumacza (Paweł Gadomski)
 ``` sql
 CREATE PROCEDURE AddTranslator
 (
@@ -1209,7 +1209,7 @@ BEGIN
 END;
 ```
 
-### 14. Dodawanie tłumacza do produktu
+### 14. Dodawanie tłumacza do produktu (Paweł Gadomski)
 ``` sql
 CREATE PROCEDURE AddTranslatorToProduct
 (
@@ -1247,7 +1247,7 @@ BEGIN
 END;
 ```
 
-### 15. Dodawanie nieobecności użytkownika do praktyk
+### 15. Dodawanie nieobecności użytkownika do praktyk (Paweł Gadomski)
 ``` sql
 CREATE PROCEDURE AddUserAbsenceToApprenticeship
 (
@@ -1322,7 +1322,7 @@ BEGIN
 END;
 ```
 
-### 17. Odejście dyrektora na emeryture
+### 17. Odejście dyrektora na emeryture (Paweł Gadomski)
 ``` sql 
 CREATE PROCEDURE RetireHeadmaster
 (
@@ -1342,7 +1342,7 @@ BEGIN
     WHERE UserID = @UserID;
 END;
 ```
-### 18. Dodawanie nieobecności w spotkaniach studyjnych:
+### 18. Dodawanie nieobecności w spotkaniach studyjnych: 
 ``` sql
 CREATE PROCEDURE InsertStudiesMeetingAbsence
     @UserID INT,
@@ -1387,7 +1387,7 @@ END;
 ```
 
 # Funkcje
-### 1. Data rozpoczęcia produktu
+### 1. Data rozpoczęcia produktu (Paweł Gadomski)
 ``` sql
 CREATE FUNCTION GetProductStartDate(
     @ProductID INT
@@ -1439,7 +1439,7 @@ BEGIN
     RETURN @Date;
 END
 ```
-### 2. Cena produktu
+### 2. Cena produktu (Paweł Gadomski)
 ``` sql
 CREATE FUNCTION GetProductPrice
 (
